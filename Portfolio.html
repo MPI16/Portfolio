@@ -3,415 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio | Web Designer</title>
+    <title>Portfolio | Creative Developer</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
-            min-height: 100vh;
-            color: #ffffff;
-            overflow-x: hidden;
+        :root {
+            --primary: #0a0a0a;
+            --secondary: #111111;
+            --accent: #c9a96e;
+            --text: #f5f5f5;
+            --text-muted: #888888;
+            --transition: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* Animated background particles */
-        .bg-animation {
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.2s var(--transition), background 0.2s;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-follower {
+            width: 40px;
+            height: 40px;
+            background: rgba(201, 169, 110, 0.1);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: transform 0.4s var(--transition), width 0.3s, height 0.3s;
+        }
+
+        .cursor.hover {
+            transform: scale(2);
+            background: var(--accent);
+        }
+
+        .cursor-follower.hover {
+            width: 60px;
+            height: 60px;
+            background: rgba(201, 169, 110, 0.2);
+        }
+
+        /* Noise Texture */
+        .noise {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 20s infinite linear;
-        }
-
-        @keyframes float {
-            from {
-                transform: translateY(100vh) translateX(0);
-            }
-            to {
-                transform: translateY(-10vh) translateX(100px);
-            }
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
         /* Header */
         header {
-            padding: 60px 20px 40px;
+            padding: 100px 40px 60px;
             text-align: center;
-            position: relative;
+        }
+
+        .eyebrow {
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s var(--transition) forwards;
         }
 
         h1 {
-            font-size: 4rem;
-            font-weight: 300;
-            letter-spacing: 15px;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
-            display: inline-block;
-            animation: glow 3s ease-in-out infinite alternate;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 400;
+            letter-spacing: -1px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.8s var(--transition) 0.2s forwards;
         }
 
-        @keyframes glow {
-            from {
-                filter: drop-shadow(0 0 20px rgba(255,255,255,0.1));
-            }
-            to {
-                filter: drop-shadow(0 0 30px rgba(255,255,255,0.3));
-            }
-        }
-
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #fff, transparent);
+        h1 span {
+            font-style: italic;
+            color: var(--accent);
         }
 
         .subtitle {
-            margin-top: 20px;
-            font-size: 1.1rem;
-            color: #888;
-            letter-spacing: 3px;
-            text-transform: uppercase;
+            font-size: 1rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            font-weight: 300;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s var(--transition) 0.4s forwards;
         }
 
-        /* Portfolio Grid */
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Clean Portfolio Grid */
         .portfolio-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 60px 20px;
+            padding: 40px 40px 100px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 40px;
         }
 
-        /* Project Card */
         .project-card {
             position: relative;
-            border-radius: 20px;
+            border-radius: 8px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
+            background: var(--secondary);
+            cursor: none;
             text-decoration: none;
             display: block;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: transform 0.4s var(--transition), box-shadow 0.4s;
+        }
+
+        .project-card.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .project-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 
-                        0 0 60px rgba(255, 255, 255, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
         .image-container {
             position: relative;
             width: 100%;
-            height: 300px;
+            aspect-ratio: 4/3;
             overflow: hidden;
+            background: #000;
         }
 
         .project-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.6s ease;
+            transition: transform 0.6s var(--transition), filter 0.4s;
+            filter: grayscale(20%);
         }
 
         .project-card:hover .project-image {
-            transform: scale(1.1);
+            transform: scale(1.05);
+            filter: grayscale(0%);
         }
 
-        /* Overlay Effect */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, 
-                transparent 0%, 
-                rgba(0,0,0,0.3) 50%, 
-                rgba(0,0,0,0.8) 100%);
-            opacity: 0.6;
-            transition: opacity 0.4s ease;
-        }
-
-        .project-card:hover .overlay {
-            opacity: 0.9;
-        }
-
-        /* View Project Button */
-        .view-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: rgba(255, 255, 255, 0.95);
-            color: #000;
-            padding: 12px 30px;
-            border-radius: 30px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .project-card:hover .view-btn {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        /* Project Info */
         .project-info {
-            padding: 30px;
-            position: relative;
+            padding: 25px;
+            background: var(--secondary);
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .project-number {
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .project-year {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
         }
 
         .project-name {
-            font-size: 1.8rem;
-            font-weight: 600;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            color: #fff;
-            position: relative;
-            display: inline-block;
-        }
-
-        .project-name::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #fff, #666);
-            transition: width 0.4s ease;
-        }
-
-        .project-card:hover .project-name::after {
-            width: 100%;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: -0.5px;
+            color: var(--text);
+            margin-bottom: 6px;
         }
 
         .project-category {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
 
-        /* Floating Elements */
-        .floating-shapes {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            overflow: hidden;
+        /* Footer */
+        footer {
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .shape {
-            position: absolute;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: rotate 20s linear infinite;
-        }
-
-        .shape:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: -150px;
-            right: -150px;
-        }
-
-        .shape:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            bottom: -100px;
-            left: -100px;
-            animation-direction: reverse;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-                letter-spacing: 8px;
-            }
-            
             .portfolio-container {
                 grid-template-columns: 1fr;
-                padding: 40px 20px;
+                padding: 20px 20px 60px;
+                gap: 30px;
             }
             
-            .image-container {
-                height: 250px;
+            header {
+                padding: 60px 20px 40px;
+            }
+            
+            .cursor, .cursor-follower {
+                display: none;
+            }
+            
+            body {
+                cursor: auto;
             }
         }
 
-        /* Loading Animation */
-        .fade-in {
-            animation: fadeIn 1s ease-out;
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        ::-webkit-scrollbar-track {
+            background: var(--primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: var(--primary);
         }
     </style>
 </head>
 <body>
-    <!-- Background Animation -->
-    <div class="bg-animation" id="particles"></div>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    <div class="noise"></div>
 
-    <!-- Floating Shapes -->
-    <div class="floating-shapes">
-        <div class="shape"></div>
-        <div class="shape"></div>
-    </div>
-
-    <!-- Header -->
-    <header class="fade-in">
-        <h1>Portfolio</h1>
-        <p class="subtitle">Selected Works</p>
+    <header>
+        <div class="eyebrow">Selected Works</div>
+        <h1>Creative <span>Portfolio</span></h1>
+        <p class="subtitle">Web Design & Development</p>
     </header>
 
-    <!-- Portfolio Grid -->
     <div class="portfolio-container">
-        <!-- Aether Project -->
-        <a href="Aether.html" class="project-card fade-in" style="animation-delay: 0.2s;">
+        <!-- Aether -->
+        <a href="Aether.html" class="project-card" data-cursor="hover">
             <div class="image-container">
-                <img src="https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80" 
-                     alt="Aether - High End Car" 
+                <img src="https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop" 
+                     alt="Aether" 
                      class="project-image">
-                <div class="overlay"></div>
-                <div class="view-btn">View Project</div>
             </div>
             <div class="project-info">
+                <div class="project-meta">
+                    <span class="project-number">01</span>
+                    <span class="project-year">2024</span>
+                </div>
                 <h2 class="project-name">Aether</h2>
                 <p class="project-category">Automotive Design</p>
             </div>
         </a>
 
-        <!-- Vantage Project -->
-        <a href="Vantage.html" class="project-card fade-in" style="animation-delay: 0.4s;">
+        <!-- Vantage -->
+        <a href="Vantage.html" class="project-card" data-cursor="hover">
             <div class="image-container">
-                <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80" 
-                     alt="Vantage - Hyperion Concept" 
+                <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=600&fit=crop" 
+                     alt="Vantage" 
                      class="project-image">
-                <div class="overlay"></div>
-                <div class="view-btn">View Project</div>
             </div>
             <div class="project-info">
+                <div class="project-meta">
+                    <span class="project-number">02</span>
+                    <span class="project-year">2024</span>
+                </div>
                 <h2 class="project-name">Vantage</h2>
                 <p class="project-category">Hyperion Concept</p>
             </div>
         </a>
 
-        <!-- Crave Project -->
-        <a href="crave.html" class="project-card fade-in" style="animation-delay: 0.6s;">
+        <!-- Crave -->
+        <a href="crave.html" class="project-card" data-cursor="hover">
             <div class="image-container">
-                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80" 
-                     alt="Crave - Delicious Food" 
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop" 
+                     alt="Crave" 
                      class="project-image">
-                <div class="overlay"></div>
-                <div class="view-btn">View Project</div>
             </div>
             <div class="project-info">
+                <div class="project-meta">
+                    <span class="project-number">03</span>
+                    <span class="project-year">2023</span>
+                </div>
                 <h2 class="project-name">Crave</h2>
                 <p class="project-category">Delicious Food</p>
             </div>
         </a>
+
+        <!-- Thread -->
+        <a href="thread.html" class="project-card" data-cursor="hover">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&h=600&fit=crop" 
+                     alt="Thread" 
+                     class="project-image">
+            </div>
+            <div class="project-info">
+                <div class="project-meta">
+                    <span class="project-number">04</span>
+                    <span class="project-year">2024</span>
+                </div>
+                <h2 class="project-name">Thread</h2>
+                <p class="project-category">Fashion Platform</p>
+            </div>
+        </a>
     </div>
 
+    <footer>
+        <p class="footer-text">Crafted with precision & passion</p>
+    </footer>
+
     <script>
-        // Generate background particles
-        const particlesContainer = document.getElementById('particles');
-        const particleCount = 50;
+        // Custom Cursor
+        const cursor = document.querySelector('.cursor');
+        const follower = document.querySelector('.cursor-follower');
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+        let followerX = 0, followerY = 0;
 
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 20 + 's';
-            particle.style.animationDuration = (Math.random() * 20 + 10) + 's';
-            particlesContainer.appendChild(particle);
-        }
-
-        // Add stagger animation for cards
-        const cards = document.querySelectorAll('.project-card');
-        cards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            setTimeout(() => {
-                card.style.transition = 'all 0.6s ease';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, 200 + (index * 200));
-        });
-
-        // Smooth scroll behavior
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        // Parallax effect on mouse move
         document.addEventListener('mousemove', (e) => {
-            const shapes = document.querySelectorAll('.shape');
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
 
-            shapes.forEach((shape, index) => {
-                const speed = (index + 1) * 20;
-                const xOffset = (0.5 - x) * speed;
-                const yOffset = (0.5 - y) * speed;
-                shape.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.2;
+            cursorY += (mouseY - cursorY) * 0.2;
+            followerX += (mouseX - followerX) * 0.1;
+            followerY += (mouseY - followerY) * 0.1;
+
+            cursor.style.left = cursorX - 10 + 'px';
+            cursor.style.top = cursorY - 10 + 'px';
+            follower.style.left = followerX - 20 + 'px';
+            follower.style.top = followerY - 20 + 'px';
+
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Hover effects
+        const hoverElements = document.querySelectorAll('a, [data-cursor="hover"]');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.classList.add('hover');
+                follower.classList.add('hover');
             });
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('hover');
+                follower.classList.remove('hover');
+            });
+        });
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.project-card').forEach(card => {
+            observer.observe(card);
         });
     </script>
 </body>
