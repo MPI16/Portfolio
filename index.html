@@ -867,16 +867,18 @@
             maxZoom: 2
         };
 
-        // Planets
+        // Planets - UPDATED CONNECTIONS
         const planets = [
-            { name: "Mercury", subtitle: "Instagram", class: "planet-mercury", color: "#8a8a8a", orbitRadius: 200, size: 20, speed: 0.02, angle: 0, url: "https://instagram.com" },
-            { name: "Venus", subtitle: "Facebook", class: "planet-venus", color: "#e6c200", orbitRadius: 300, size: 28, speed: 0.015, angle: 45, url: "https://facebook.com" },
-            { name: "Earth", subtitle: "Resume", class: "planet-earth", color: "#1e90ff", orbitRadius: 420, size: 30, speed: 0.012, angle: 90, url: "#" },
-            { name: "Mars", subtitle: "Portfolio", class: "planet-mars", color: "#cd5c5c", orbitRadius: 550, size: 24, speed: 0.01, angle: 135, url: "#" },
-            { name: "Jupiter", subtitle: "GitHub", class: "planet-jupiter", color: "#d4a574", orbitRadius: 750, size: 50, speed: 0.006, angle: 180, url: "https://github.com" },
-            { name: "Saturn", subtitle: "LinkedIn", class: "planet-saturn", color: "#f4d03f", orbitRadius: 950, size: 45, speed: 0.004, angle: 225, hasRings: true, url: "https://linkedin.com" },
-            { name: "Uranus", subtitle: "YouTube", class: "planet-uranus", color: "#87ceeb", orbitRadius: 1150, size: 35, speed: 0.003, angle: 270, url: "https://youtube.com" },
-            { name: "Neptune", subtitle: "Contact", class: "planet-neptune", color: "#4169e1", orbitRadius: 1350, size: 34, speed: 0.002, angle: 315, url: "mailto:test@test.com" }
+            { name: "Mercury", subtitle: "Instagram", class: "planet-mercury", color: "#8a8a8a", orbitRadius: 200, size: 20, speed: 0.02, angle: 0, url: "https://instagram.com", type: "external" },
+            { name: "Venus", subtitle: "Facebook", class: "planet-venus", color: "#e6c200", orbitRadius: 300, size: 28, speed: 0.015, angle: 45, url: "https://facebook.com", type: "external" },
+            // EARTH - RESUME - Connected to Google Drive
+            { name: "Earth", subtitle: "Resume", class: "planet-earth", color: "#1e90ff", orbitRadius: 420, size: 30, speed: 0.012, angle: 90, url: "https://drive.google.com/drive/u/1/folders/14WhC0gYhIHjxjxxuGsIoQB_IYePSgQ0J", type: "external" },
+            // MARS - PORTFOLIO - Connected to local Portfolio.html
+            { name: "Mars", subtitle: "Portfolio", class: "planet-mars", color: "#cd5c5c", orbitRadius: 550, size: 24, speed: 0.01, angle: 135, url: "Portfolio.html", type: "local" },
+            { name: "Jupiter", subtitle: "GitHub", class: "planet-jupiter", color: "#d4a574", orbitRadius: 750, size: 50, speed: 0.006, angle: 180, url: "https://github.com", type: "external" },
+            { name: "Saturn", subtitle: "LinkedIn", class: "planet-saturn", color: "#f4d03f", orbitRadius: 950, size: 45, speed: 0.004, angle: 225, hasRings: true, url: "https://linkedin.com", type: "external" },
+            { name: "Uranus", subtitle: "YouTube", class: "planet-uranus", color: "#87ceeb", orbitRadius: 1150, size: 35, speed: 0.003, angle: 270, url: "https://youtube.com", type: "external" },
+            { name: "Neptune", subtitle: "Contact", class: "planet-neptune", color: "#4169e1", orbitRadius: 1350, size: 34, speed: 0.002, angle: 315, url: "mailto:test@test.com", type: "email" }
         ];
 
         // State
@@ -1146,13 +1148,24 @@
         }
 
         function enterPlanet() {
-            if (state.currentPlanet && state.currentPlanet.url !== '#') {
-                if (state.currentPlanet.url.startsWith('mailto:')) {
-                    window.location.href = state.currentPlanet.url;
-                } else {
-                    window.open(state.currentPlanet.url, '_blank');
+            if (!state.currentPlanet) return;
+            
+            const p = state.currentPlanet;
+            const url = p.url;
+            
+            if (p.type === 'local') {
+                // Open local Portfolio.html in same window
+                window.location.href = url;
+            } else if (p.type === 'email') {
+                // Open email client
+                window.location.href = url;
+            } else if (p.type === 'external') {
+                // Open external links in new tab
+                if (url !== '#') {
+                    window.open(url, '_blank', 'noopener,noreferrer');
                 }
             }
+            
             closePortal();
         }
 
