@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRAVE | Taste The Extraordinary</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind & GSAP -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        crave: {
+                            orange: '#FF6B35',
+                            coral: '#FF8E72',
+                            yellow: '#FFD23F',
+                            cream: '#FFF8F0',
+                            mint: '#7FD8BE',
+                            pink: '#FF6B9D',
+                            purple: '#C77DFF',
+                            dark: '#1A1A2E',
+                            charcoal: '#16213E'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FFF8F0;
+            color: #1A1A2E;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FF6B35;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s, background 0.15s, width 0.3s, height 0.3s;
+            mix-blend-mode: difference;
+            background: transparent;
+        }
+
+        .cursor.hovered {
+            width: 60px;
+            height: 60px;
+            background: #FF6B35;
+            border-color: transparent;
+            mix-blend-mode: normal;
+        }
+
+        .cursor.hovered::after {
+            content: 'EAT';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Floating Elements Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        @keyframes float-delayed {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(-5deg); }
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .float-1 { animation: float 6s ease-in-out infinite; }
+        .float-2 { animation: float-delayed 8s ease-in-out infinite; }
+        .float-3 { animation: float 7s ease-in-out infinite 1s; }
+        .spin-slow { animation: spin-slow 20s linear infinite; }
+        .bounce-gentle { animation: bounce-gentle 2s ease-in-out infinite; }
+
+        /* Text Scramble Effect */
+        .scramble-text {
+            display: inline-block;
+        }
+
+        /* Liquid Button */
+        .liquid-btn {
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .liquid-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: #1A1A2E;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            z-index: -1;
+        }
+
+        .liquid-btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .liquid-btn:hover {
+            color: #FFD23F;
+        }
+
+        /* Card Stack Effect - FIXED */
+        .dish-card {
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .dish-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(255, 107, 53, 0.2);
+        }
+
+        .dish-card img {
+            transition: transform 0.6s;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .dish-card:hover img {
+            transform: scale(1.1) rotate(2deg);
+        }
+
+        /* Steam Animation */
+        @keyframes steam {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-40px) scale(1.5); opacity: 0; }
+        }
+
+        .steam-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: steam 3s ease-out infinite;
+        }
+
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #FF6B35;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+
+        .loader-bite {
+            width: 100px;
+            height: 100px;
+            background: #FFF8F0;
+            border-radius: 50%;
+            position: relative;
+            animation: bite 1s ease-in-out infinite;
+        }
+
+        @keyframes bite {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+        }
+
+        .loader-bite::before,
+        .loader-bite::after {
+            content: '';
+            position: absolute;
+            background: #FF6B35;
+            border-radius: 50%;
+        }
+
+        .loader-bite::before {
+            width: 35px;
+            height: 35px;
+            top: -5px;
+            right: 20px;
+        }
+
+        .loader-bite::after {
+            width: 30px;
+            height: 30px;
+            bottom: 10px;
+            right: -5px;
+        }
+
+        /* Morphing Blob */
+        .blob {
+            position: absolute;
+            filter: blur(40px);
+            opacity: 0.6;
+            animation: morph 8s ease-in-out infinite;
+        }
+
+        @keyframes morph {
+            0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+            50% { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+            75% { border-radius: 60% 40% 60% 30% / 60% 30% 40% 70%; }
+        }
+
+        /* Scrolling Text - CENTERED */
+        .scroll-text-container {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scroll-text {
+            white-space: nowrap;
+            animation: scroll-left 25s linear infinite;
+            display: inline-block;
+            padding-left: 100%;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Ingredient Tag */
+        .ingredient-tag {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .ingredient-tag:hover {
+            transform: scale(1.1) rotate(-3deg);
+            background: #FF6B35;
+            color: white;
+        }
+
+        /* Rating Stars Animation */
+        .star {
+            transition: transform 0.3s;
+        }
+
+        .star:hover {
+            transform: scale(1.3) rotate(72deg);
+        }
+
+        /* Parallax Layers */
+        .parallax-slow { will-change: transform; }
+        .parallax-fast { will-change: transform; }
+
+        /* Hide scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF8F0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FF6B35;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF8E72;
+        }
+
+        /* Taste Bud Animation */
+        @keyframes pop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .taste-bud {
+            animation: pop 0.5s ease-out backwards;
+        }
+
+        /* Ensure images stay visible */
+        img {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-crave-orange selection:text-white">
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-bite mb-8"></div>
+        <div class="text-4xl font-display font-bold text-white tracking-wider animate-pulse">CRAVE</div>
+        <div class="text-sm text-white/80 mt-4 font-sans tracking-widest">PREPARING SOMETHING DELICIOUS...</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor hidden md:block"></div>
+
+    <!-- Background Blobs -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="blob bg-crave-orange/20 w-96 h-96 top-0 left-0"></div>
+        <div class="blob bg-crave-yellow/20 w-80 h-80 top-1/3 right-0" style="animation-delay: -2s"></div>
+        <div class="blob bg-crave-mint/20 w-72 h-72 bottom-0 left-1/3" style="animation-delay: -4s"></div>
+        <div class="blob bg-crave-pink/20 w-64 h-64 top-1/2 right-1/4" style="animation-delay: -6s"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-4 flex justify-between items-center mix-blend-difference text-white">
+        <div class="flex items-center gap-2 cursor-pointer group" onclick="window.scrollTo(0,0)">
+            <div class="w-10 h-10 bg-crave-orange rounded-full flex items-center justify-center transform group-hover:rotate-12 transition-transform">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.5 2 6 4.5 6 8v8c0 2.2-1.8 4-4 4h16c-2.2 0-4-1.8-4-4V8c0-3.5-2.5-6-6-6zm0 2c2.2 0 4 1.8 4 4v4H8V8c0-2.2 1.8-4 4-4z"/>
+                </svg>
+            </div>
+            <span class="font-display text-2xl font-bold tracking-tight">CRAVE</span>
+        </div>
+
+        <div class="hidden md:flex gap-8 font-sans font-medium text-sm tracking-wide">
+            <a href="#menu" class="hover:text-crave-yellow transition-colors nav-item">Menu</a>
+            <a href="#experience" class="hover:text-crave-yellow transition-colors nav-item">Experience</a>
+            <a href="#chef" class="hover:text-crave-yellow transition-colors nav-item">Chef's Table</a>
+            <a href="#reserve" class="hover:text-crave-yellow transition-colors nav-item">Reserve</a>
+        </div>
+
+        <button class="liquid-btn px-6 py-3 bg-crave-orange text-white rounded-full font-sans font-semibold text-sm tracking-wide nav-item">
+            Order Now
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="relative z-10">
+
+        <!-- HERO SECTION -->
+        <section id="hero" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+            
+            <!-- Floating Food Elements -->
+            <div class="absolute inset-0 pointer-events-none">
+                <div class="absolute top-20 left-10 w-20 h-20 float-1">
+                    <span class="text-6xl">🍕</span>
+                </div>
+                <div class="absolute top-40 right-20 w-24 h-24 float-2">
+                    <span class="text-7xl">🍔</span>
+                </div>
+                <div class="absolute bottom-40 left-1/4 w-16 h-16 float-3">
+                    <span class="text-5xl">🍜</span>
+                </div>
+                <div class="absolute top-1/3 right-1/3 w-20 h-20 float-1" style="animation-delay: -3s">
+                    <span class="text-6xl">🥗</span>
+                </div>
+                <div class="absolute bottom-32 right-10 w-24 h-24 float-2" style="animation-delay: -2s">
+                    <span class="text-7xl">🍰</span>
+                </div>
+            </div>
+
+            <div class="container mx-auto px-6 text-center relative">
+                
+                <!-- Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur rounded-full mb-8 shadow-lg bounce-gentle">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-xs font-sans font-semibold text-crave-dark tracking-wide">NOW OPEN FOR DINING</span>
+                </div>
+
+                <!-- Main Title -->
+                <h1 class="font-display text-6xl md:text-8xl lg:text-9xl font-bold text-crave-dark mb-6 leading-none">
+                    <span class="block overflow-hidden"><span class="block reveal-text inline-block">TASTE THE</span></span>
+                    <span class="block overflow-hidden"><span class="block reveal-text inline-block text-crave-orange">EXTRAORDINARY</span></span>
+                </h1>
+
+                <p class="text-xl md:text-2xl text-crave-charcoal/70 max-w-2xl mx-auto mb-10 font-light reveal-text">
+                    Where flavor meets artistry. Every dish tells a story, every bite creates a memory.
+                </p>
+
+                <!-- Interactive Flavor Selector -->
+                <div class="flex flex-wrap justify-center gap-4 mb-12 reveal-text">
+                    <button class="ingredient-tag px-6 py-3 bg-white rounded-full shadow-md font-sans font-medium text-sm border-2 border-transparent hover:border-crave-orange">
+                        🌶️ Spicy
+                    </button>
+                    <button class="ingredient-tag px-6 py-3 bg-white rounded-full shadow-md font-sans font-medium text-sm border-2 border-transparent hover:border-crave-mint">
+                        🥗 Fresh
+                    </button>
+                    <button class="ingredient-tag px-6 py-3 bg-white rounded-full shadow-md font-sans font-medium text-sm border-2 border-transparent hover:border-crave-yellow">
+                        🧀 Savory
+                    </button>
+                    <button class="ingredient-tag px-6 py-3 bg-white rounded-full shadow-md font-sans font-medium text-sm border-2 border-transparent hover:border-crave-pink">
+                        🍰 Sweet
+                    </button>
+                </div>
+
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center reveal-text">
+                    <button class="liquid-btn px-10 py-4 bg-crave-orange text-white rounded-full font-sans font-bold text-lg shadow-xl shadow-crave-orange/30 nav-item">
+                        Explore Menu
+                    </button>
+                    <button class="px-10 py-4 bg-white text-crave-dark rounded-full font-sans font-semibold text-lg shadow-lg border-2 border-crave-dark/10 hover:border-crave-orange transition-colors nav-item flex items-center justify-center gap-2">
+                        <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                        Book Table
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-8 max-w-lg mx-auto mt-16 pt-8 border-t border-crave-dark/10 reveal-text">
+                    <div class="text-center">
+                        <div class="text-3xl font-display font-bold text-crave-orange counter" data-target="47">0</div>
+                        <div class="text-xs text-crave-charcoal/60 font-medium uppercase tracking-wider mt-1">Unique Dishes</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-display font-bold text-crave-orange counter" data-target="12">0</div>
+                        <div class="text-xs text-crave-charcoal/60 font-medium uppercase tracking-wider mt-1">Master Chefs</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-display font-bold text-crave-orange">4.9</div>
+                        <div class="text-xs text-crave-charcoal/60 font-medium uppercase tracking-wider mt-1">★★★★★</div>
+                    </div>
+                </div>
+            </div>
+
+       
+        </section>
+
+         <!-- Infinite Scroll Text - MOVED LOWER -->
+    <div class="relative -mt-1">
+        <div class="py-8 bg-crave-orange overflow-hidden">
+            <div class="scroll-text-container">
+                <div class="scroll-text font-display text-4xl md:text-6xl font-bold text-white/90 tracking-tight">
+                    🔥 FRESH • 🌿 ORGANIC • 🍳 MADE WITH LOVE • 🌶️ SPICY • 🧀 CHEESY • 🥩 PREMIUM • 🍰 SWEET • 
+                    🔥 FRESH • 🌿 ORGANIC • 🍳 MADE WITH LOVE • 🌶️ SPICY • 🧀 CHEESY • 🥩 PREMIUM • 🍰 SWEET •
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- FEATURED DISHES -->
+        <section id="menu" class="py-32 relative">
+            <div class="container mx-auto px-6">
+                
+                <div class="text-center mb-20">
+                    <span class="inline-block px-4 py-2 bg-crave-yellow/20 text-crave-dark rounded-full text-xs font-bold tracking-widest uppercase mb-4">Chef's Selection</span>
+                    <h2 class="font-display text-5xl md:text-7xl font-bold text-crave-dark mb-6">This Week's <span class="text-crave-orange">Stars</span></h2>
+                    <p class="text-lg text-crave-charcoal/60 max-w-xl mx-auto">Handcrafted by our master chefs using locally sourced, premium ingredients.</p>
+                </div>
+
+                <!-- Dish Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Dish 1 -->
+                    <div class="dish-card bg-white rounded-3xl overflow-hidden shadow-lg group cursor-pointer nav-item">
+                        <div class="relative h-64 overflow-hidden bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80" 
+                                 alt="Truffle Pizza" 
+                                 class="w-full h-full object-cover block"
+                                 loading="eager"
+                                 decoding="async">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-crave-orange text-white rounded-full flex items-center justify-center font-bold shadow-lg z-10">
+                                $24
+                            </div>
+                            <!-- Steam -->
+                            <div class="steam-particle left-1/3 top-1/2" style="animation-delay: 0s"></div>
+                            <div class="steam-particle left-1/2 top-1/2" style="animation-delay: 1s"></div>
+                            <div class="steam-particle left-2/3 top-1/2" style="animation-delay: 2s"></div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">VEGETARIAN</span>
+                                <div class="flex text-crave-yellow text-sm">
+                                    ★★★★★
+                                </div>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Truffle & Mushroom</h3>
+                            <p class="text-crave-charcoal/60 text-sm mb-4">Wild mushrooms, truffle oil, mozzarella, fresh thyme on sourdough crust.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">🔥</span>
+                                    <span class="text-sm font-semibold text-crave-orange">Popular</span>
+                                </div>
+                                <button class="w-10 h-10 bg-crave-dark text-crave-yellow rounded-full flex items-center justify-center hover:bg-crave-orange hover:text-white transition-colors text-xl font-bold">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dish 2 -->
+                    <div class="dish-card bg-white rounded-3xl overflow-hidden shadow-lg group cursor-pointer nav-item">
+                        <div class="relative h-64 overflow-hidden bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&q=80" 
+                                 alt="Gourmet Burger" 
+                                 class="w-full h-full object-cover block"
+                                 loading="eager"
+                                 decoding="async">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-crave-orange text-white rounded-full flex items-center justify-center font-bold shadow-lg z-10">
+                                $18
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">SPICY</span>
+                                <div class="flex text-crave-yellow text-sm">
+                                    ★★★★★
+                                </div>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Inferno Burger</h3>
+                            <p class="text-crave-charcoal/60 text-sm mb-4">Wagyu beef, ghost pepper cheese, caramelized onions, brioche bun.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">🌶️</span>
+                                    <span class="text-sm font-semibold text-red-500">Hot!</span>
+                                </div>
+                                <button class="w-10 h-10 bg-crave-dark text-crave-yellow rounded-full flex items-center justify-center hover:bg-crave-orange hover:text-white transition-colors text-xl font-bold">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dish 3 -->
+                    <div class="dish-card bg-white rounded-3xl overflow-hidden shadow-lg group cursor-pointer nav-item">
+                        <div class="relative h-64 overflow-hidden bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80" 
+                                 alt="Fresh Salad" 
+                                 class="w-full h-full object-cover block"
+                                 loading="eager"
+                                 decoding="async">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-crave-orange text-white rounded-full flex items-center justify-center font-bold shadow-lg z-10">
+                                $16
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-3 py-1 bg-crave-mint/20 text-emerald-700 rounded-full text-xs font-bold">FRESH</span>
+                                <div class="flex text-crave-yellow text-sm">
+                                    ★★★★☆
+                                </div>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Garden Harvest</h3>
+                            <p class="text-crave-charcoal/60 text-sm mb-4">Heirloom tomatoes, burrata, basil pesto, balsamic glaze, toasted pine nuts.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">🥗</span>
+                                    <span class="text-sm font-semibold text-emerald-600">Healthy</span>
+                                </div>
+                                <button class="w-10 h-10 bg-crave-dark text-crave-yellow rounded-full flex items-center justify-center hover:bg-crave-orange hover:text-white transition-colors text-xl font-bold">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dish 4 -->
+                    <div class="dish-card bg-white rounded-3xl overflow-hidden shadow-lg group cursor-pointer nav-item">
+                        <div class="relative h-64 overflow-hidden bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80" 
+                                 alt="Pasta" 
+                                 class="w-full h-full object-cover block"
+                                 loading="lazy"
+                                 decoding="async">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-crave-orange text-white rounded-full flex items-center justify-center font-bold shadow-lg z-10">
+                                $22
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">CHEF'S CHOICE</span>
+                                <div class="flex text-crave-yellow text-sm">
+                                    ★★★★★
+                                </div>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Lobster Linguine</h3>
+                            <p class="text-crave-charcoal/60 text-sm mb-4">Fresh pasta, butter-poached lobster, saffron cream, chives.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">🦞</span>
+                                    <span class="text-sm font-semibold text-crave-orange">Premium</span>
+                                </div>
+                                <button class="w-10 h-10 bg-crave-dark text-crave-yellow rounded-full flex items-center justify-center hover:bg-crave-orange hover:text-white transition-colors text-xl font-bold">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dish 5 -->
+                    <div class="dish-card bg-white rounded-3xl overflow-hidden shadow-lg group cursor-pointer nav-item">
+                        <div class="relative h-64 overflow-hidden bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1563729768-7436372f3b59?w=800&q=80" 
+                                 alt="Steak" 
+                                 class="w-full h-full object-cover block"
+                                 loading="lazy"
+                                 decoding="async">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-crave-orange text-white rounded-full flex items-center justify-center font-bold shadow-lg z-10">
+                                $45
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">SIGNATURE</span>
+                                <div class="flex text-crave-yellow text-sm">
+                                    ★★★★★
+                                </div>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Wagyu Ribeye</h3>
+                            <p class="text-crave-charcoal/60 text-sm mb-4">A5 Wagyu, truffle mash, roasted bone marrow, red wine reduction.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">🥩</span>
+                                    <span class="text-sm font-semibold text-purple-600">Exclusive</span>
+                                </div>
+                                <button class="w-10 h-10 bg-crave-dark text-crave-yellow rounded-full flex items-center justify-center hover:bg-crave-orange hover:text-white transition-colors text-xl font-bold">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dish 6 -->
+                    <div class="dish-card bg-white rounded-3xl overflow-hidden shadow-lg group cursor-pointer nav-item">
+                        <div class="relative h-64 overflow-hidden bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=800&q=80" 
+                                 alt="Dessert" 
+                                 class="w-full h-full object-cover block"
+                                 loading="lazy"
+                                 decoding="async">
+                            <div class="absolute top-4 right-4 w-12 h-12 bg-crave-orange text-white rounded-full flex items-center justify-center font-bold shadow-lg z-10">
+                                $12
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-bold">SWEET</span>
+                                <div class="flex text-crave-yellow text-sm">
+                                    ★★★★★
+                                </div>
+                            </div>
+                            <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Molten Lava Cake</h3>
+                            <p class="text-crave-charcoal/60 text-sm mb-4">70% dark chocolate, vanilla bean ice cream, raspberry coulis.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">🍫</span>
+                                    <span class="text-sm font-semibold text-pink-500">Must Try</span>
+                                </div>
+                                <button class="w-10 h-10 bg-crave-dark text-crave-yellow rounded-full flex items-center justify-center hover:bg-crave-orange hover:text-white transition-colors text-xl font-bold">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="text-center mt-16">
+                    <button class="liquid-btn px-12 py-4 bg-crave-dark text-crave-yellow rounded-full font-sans font-bold text-lg nav-item shadow-xl">
+                        View Full Menu
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Taste Experience -->
+        <section id="experience" class="py-32 bg-crave-dark text-white relative overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 40px 40px;"></div>
+            </div>
+
+            <div class="container mx-auto px-6 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    
+                    <div class="space-y-8">
+                        <span class="inline-block px-4 py-2 bg-crave-orange text-white rounded-full text-xs font-bold tracking-widest uppercase">Interactive Experience</span>
+                        <h2 class="font-display text-5xl md:text-7xl font-bold leading-tight">
+                            What's Your<br>
+                            <span class="text-crave-yellow">Flavor Profile?</span>
+                        </h2>
+                        <p class="text-lg text-white/70 font-light leading-relaxed">
+                            Everyone's palate is unique. Drag the sliders to discover your perfect flavor balance, 
+                            and we'll recommend dishes tailored specifically to your taste.
+                        </p>
+
+                        <!-- Interactive Sliders -->
+                        <div class="space-y-6 bg-white/5 backdrop-blur p-8 rounded-2xl border border-white/10">
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm font-medium">
+                                    <span>Sweet</span>
+                                    <span id="sweet-val">50%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="50" 
+                                       class="w-full h-3 bg-white/20 rounded-full appearance-none cursor-pointer"
+                                       id="sweet-slider"
+                                       style="accent-color: #FF6B9D;">
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm font-medium">
+                                    <span>Savory</span>
+                                    <span id="savory-val">50%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="50" 
+                                       class="w-full h-3 bg-white/20 rounded-full appearance-none cursor-pointer"
+                                       id="savory-slider"
+                                       style="accent-color: #FF6B35;">
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm font-medium">
+                                    <span>Spicy</span>
+                                    <span id="spicy-val">30%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="30" 
+                                       class="w-full h-3 bg-white/20 rounded-full appearance-none cursor-pointer"
+                                       id="spicy-slider"
+                                       style="accent-color: #ef4444;">
+                            </div>
+
+                            <button class="w-full py-4 bg-crave-yellow text-crave-dark rounded-xl font-bold text-lg mt-4 hover:bg-white transition-colors nav-item" onclick="recommendDish()">
+                                Find My Perfect Dish 🎯
+                            </button>
+                        </div>
+
+                        <!-- Recommendation Result -->
+                        <div id="recommendation" class="hidden bg-crave-orange/20 border border-crave-orange/30 p-6 rounded-2xl">
+                            <div class="flex items-center gap-4">
+                                <span class="text-4xl" id="rec-emoji">🍕</span>
+                                <div>
+                                    <h4 class="font-bold text-xl" id="rec-name">Truffle Pizza</h4>
+                                    <p class="text-sm text-white/70" id="rec-desc">Based on your savory preference</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Taste Map -->
+                    <div class="relative h-[500px] flex items-center justify-center">
+                        <div class="absolute w-80 h-80 border-2 border-white/20 rounded-full flex items-center justify-center">
+                            <div class="absolute w-60 h-60 border border-white/10 rounded-full"></div>
+                            <div class="absolute w-40 h-40 border border-white/10 rounded-full"></div>
+                            
+                            <!-- Floating Taste Icons -->
+                            <div class="absolute -top-4 left-1/2 -translate-x-1/2 text-4xl float-1">🍬</div>
+                            <div class="absolute top-1/2 -right-4 text-4xl float-2">🥩</div>
+                            <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-4xl float-3">🌶️</div>
+                            <div class="absolute top-1/2 -left-4 text-4xl float-1" style="animation-delay: -2s">🍋</div>
+                            
+                            <!-- Center Result -->
+                            <div class="w-24 h-24 bg-crave-yellow rounded-full flex items-center justify-center text-5xl shadow-2xl shadow-crave-yellow/50" id="taste-center">
+                                😋
+                            </div>
+                        </div>
+                        
+                        <!-- Orbiting Elements -->
+                        <div class="absolute w-full h-full spin-slow">
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 bg-crave-pink rounded-full"></div>
+                        </div>
+                        <div class="absolute w-[90%] h-[90%] spin-slow" style="animation-direction: reverse; animation-duration: 15s;">
+                            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-4 bg-crave-orange rounded-full"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Chef's Table -->
+        <section id="chef" class="py-32 relative">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <span class="inline-block px-4 py-2 bg-crave-mint/20 text-emerald-700 rounded-full text-xs font-bold tracking-widest uppercase mb-4">Behind The Pass</span>
+                    <h2 class="font-display text-5xl md:text-7xl font-bold text-crave-dark mb-6">Meet The <span class="text-crave-orange">Makers</span></h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- Chef 1 -->
+                    <div class="group text-center">
+                        <div class="relative w-48 h-48 mx-auto mb-6">
+                            <div class="absolute inset-0 bg-crave-orange rounded-full transform rotate-6 group-hover:rotate-12 transition-transform"></div>
+                            <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=400&q=80" 
+                                 alt="Chef Marco" 
+                                 class="relative w-full h-full object-cover rounded-full border-4 border-white shadow-xl">
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Chef Marco</h3>
+                        <p class="text-crave-orange font-medium text-sm mb-3">Executive Chef</p>
+                        <p class="text-crave-charcoal/60 text-sm">"Food is art you can eat. Every plate is a canvas."</p>
+                    </div>
+
+                    <!-- Chef 2 -->
+                    <div class="group text-center">
+                        <div class="relative w-48 h-48 mx-auto mb-6">
+                            <div class="absolute inset-0 bg-crave-yellow rounded-full transform -rotate-3 group-hover:-rotate-6 transition-transform"></div>
+                            <img src="https://images.unsplash.com/photo-1583394293214-28ez7464d2e0?w=400&q=80" 
+                                 alt="Chef Sarah" 
+                                 class="relative w-full h-full object-cover rounded-full border-4 border-white shadow-xl">
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Chef Sarah</h3>
+                        <p class="text-crave-orange font-medium text-sm mb-3">Pastry Artist</p>
+                        <p class="text-crave-charcoal/60 text-sm">"Dessert is not a course, it's a state of mind."</p>
+                    </div>
+
+                    <!-- Chef 3 -->
+                    <div class="group text-center">
+                        <div class="relative w-48 h-48 mx-auto mb-6">
+                            <div class="absolute inset-0 bg-crave-pink rounded-full transform rotate-6 group-hover:rotate-12 transition-transform"></div>
+                            <img src="https://images.unsplash.com/photo-1566554273541-37a9ca77b91f?w=400&q=80" 
+                                 alt="Chef David" 
+                                 class="relative w-full h-full object-cover rounded-full border-4 border-white shadow-xl">
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-crave-dark mb-2">Chef David</h3>
+                        <p class="text-crave-orange font-medium text-sm mb-3">Grill Master</p>
+                        <p class="text-crave-charcoal/60 text-sm">"Fire transforms. Smoke elevates. Passion perfects."</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Reservation CTA -->
+        <section id="reserve" class="py-32 bg-crave-orange relative overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute top-10 left-10 text-8xl opacity-20 float-1">🍽️</div>
+            <div class="absolute bottom-10 right-10 text-8xl opacity-20 float-2">🥂</div>
+            
+            <div class="container mx-auto px-6 text-center relative z-10">
+                <h2 class="font-display text-5xl md:text-7xl font-bold text-white mb-6">Hungry Yet?</h2>
+                <p class="text-xl text-white/90 max-w-2xl mx-auto mb-10 font-light">
+                    Book your table now and experience flavors that will change how you think about food. 
+                    Weekend slots filling fast!
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button class="px-12 py-4 bg-white text-crave-orange rounded-full font-bold text-lg shadow-xl hover:bg-crave-yellow hover:text-crave-dark transition-colors nav-item">
+                        Reserve Table
+                    </button>
+                    <button class="px-12 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold text-lg hover:bg-white/10 transition-colors nav-item flex items-center justify-center gap-2">
+                        <span class="w-3 h-3 bg-white rounded-full animate-pulse"></span>
+                        Order Delivery
+                    </button>
+                </div>
+
+                <!-- Trust Badges -->
+                <div class="flex flex-wrap justify-center gap-8 mt-16 pt-8 border-t border-white/20">
+                    <div class="flex items-center gap-2 text-white/80">
+                        <span class="text-2xl">🚚</span>
+                        <span class="text-sm font-medium">Free Delivery</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-white/80">
+                        <span class="text-2xl">⏱️</span>
+                        <span class="text-sm font-medium">30 Min Guarantee</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-white/80">
+                        <span class="text-2xl">🌱</span>
+                        <span class="text-sm font-medium">Locally Sourced</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-white/80">
+                        <span class="text-2xl">⭐</span>
+                        <span class="text-sm font-medium">4.9 Rating</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-crave-dark text-white py-16">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 bg-crave-orange rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C8.5 2 6 4.5 6 8v8c0 2.2-1.8 4-4 4h16c-2.2 0-4-1.8-4-4V8c0-3.5-2.5-6-6-6z"/>
+                                </svg>
+                            </div>
+                            <span class="font-display text-2xl font-bold">CRAVE</span>
+                        </div>
+                        <p class="text-white/60 text-sm">Taste the extraordinary. Every bite tells a story.</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold mb-4 text-crave-yellow">Menu</h4>
+                        <ul class="space-y-2 text-white/60 text-sm">
+                            <li><a href="#" class="hover:text-white transition-colors">Starters</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Mains</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Desserts</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Drinks</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold mb-4 text-crave-yellow">Visit</h4>
+                        <ul class="space-y-2 text-white/60 text-sm">
+                            <li>123 Flavor Street</li>
+                            <li>Taste City, TC 12345</li>
+                            <li>Open Daily: 11AM - 11PM</li>
+                            <li>(555) 123-4567</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold mb-4 text-crave-yellow">Stay Hungry</h4>
+                        <div class="flex gap-3">
+                            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-crave-orange transition-colors nav-item">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 2.169-4.676 3.367-7.548 3.367-.491 0-.974-.028-1.452-.084 2.679 1.724 5.864 2.729 9.286 2.729 11.143 0 17.243-9.235 17.003-17.518 1.147-.826 2.137-1.858 2.923-3.034z"/></svg>
+                            </a>
+                            <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-crave-orange transition-colors nav-item">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p class="text-white/40 text-sm">&copy; 2024 CRAVE Restaurant. All rights reserved.</p>
+                    <div class="flex gap-6 text-white/40 text-sm">
+                        <a href="#" class="hover:text-white transition-colors">Privacy</a>
+                        <a href="#" class="hover:text-white transition-colors">Terms</a>
+                        <a href="#" class="hover:text-white transition-colors">Careers</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- Loader ---
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.transform = 'translateY(-100%)';
+                setTimeout(() => {
+                    loader.style.visibility = 'hidden';
+                    initAnimations();
+                }, 800);
+            }, 2000);
+        });
+
+        // --- Custom Cursor ---
+        const cursor = document.querySelector('.cursor');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        navItems.forEach(item => {
+            item.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+            item.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        });
+
+        // --- GSAP Animations ---
+        function initAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Hero Text Reveal
+            gsap.from(".reveal-text", {
+                y: 100,
+                opacity: 0,
+                duration: 1,
+                stagger: 0.1,
+                ease: "power4.out"
+            });
+
+            // Counter Animation
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                gsap.to(counter, {
+                    innerHTML: target,
+                    duration: 2,
+                    snap: { innerHTML: 1 },
+                    ease: "power2.out",
+                    delay: 0.5
+                });
+            });
+
+            // Dish Cards Stagger - FIXED: removed opacity animation
+            gsap.from(".dish-card", {
+                y: 60,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: "#menu",
+                    start: "top 70%"
+                }
+            });
+
+            // Chef Cards
+            gsap.from("#chef .group", {
+                y: 40,
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.2,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: "#chef",
+                    start: "top 70%"
+                }
+            });
+        }
+
+        // --- Interactive Taste Profile ---
+        const sliders = {
+            sweet: document.getElementById('sweet-slider'),
+            savory: document.getElementById('savory-slider'),
+            spicy: document.getElementById('spicy-slider')
+        };
+
+        const displays = {
+            sweet: document.getElementById('sweet-val'),
+            savory: document.getElementById('savory-val'),
+            spicy: document.getElementById('spicy-val')
+        };
+
+        const tasteCenter = document.getElementById('taste-center');
+
+        Object.keys(sliders).forEach(taste => {
+            sliders[taste].addEventListener('input', (e) => {
+                displays[taste].textContent = e.target.value + '%';
+                updateTasteEmoji();
+            });
+        });
+
+        function updateTasteEmoji() {
+            const sweet = parseInt(sliders.sweet.value);
+            const savory = parseInt(sliders.savory.value);
+            const spicy = parseInt(sliders.spicy.value);
+            
+            let emoji = '😋';
+            if (spicy > 70) emoji = '🥵';
+            else if (sweet > 70) emoji = '🍭';
+            else if (savory > 70) emoji = '🥩';
+            else if (spicy > 50 && savory > 50) emoji = '🌶️';
+            
+            tasteCenter.textContent = emoji;
+        }
+
+        function recommendDish() {
+            const sweet = parseInt(sliders.sweet.value);
+            const savory = parseInt(sliders.savory.value);
+            const spicy = parseInt(sliders.spicy.value);
+            
+            const rec = document.getElementById('recommendation');
+            const emoji = document.getElementById('rec-emoji');
+            const name = document.getElementById('rec-name');
+            const desc = document.getElementById('rec-desc');
+            
+            let dish = {
+                emoji: '🍕',
+                name: 'Truffle Pizza',
+                desc: 'Perfect balance for your palate'
+            };
+            
+            if (spicy > 60) {
+                dish = { emoji: '🍔', name: 'Inferno Burger', desc: 'For the spice lover in you' };
+            } else if (sweet > 60) {
+                dish = { emoji: '🍰', name: 'Molten Lava Cake', desc: 'Satisfy that sweet tooth' };
+            } else if (savory > 60) {
+                dish = { emoji: '🥩', name: 'Wagyu Ribeye', desc: 'Pure savory perfection' };
+            }
+            
+            emoji.textContent = dish.emoji;
+            name.textContent = dish.name;
+            desc.textContent = dish.desc;
+            
+            rec.classList.remove('hidden');
+            gsap.from(rec, { y: 20, opacity: 0, duration: 0.5 });
+        }
+
+        // --- Parallax on Mouse Move ---
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+            
+            gsap.to('.float-1', { x: x * 0.5, y: y * 0.5, duration: 1 });
+            gsap.to('.float-2', { x: -x * 0.3, y: -y * 0.3, duration: 1 });
+            gsap.to('.float-3', { x: x * 0.2, y: y * 0.4, duration: 1 });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER | Automotive Atelier</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind & GSAP -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        aether: {
+                            black: '#0A0A0A',
+                            charcoal: '#141414',
+                            gold: '#C9A962',
+                            goldLight: '#E5D4A1',
+                            goldDark: '#8B7355',
+                            silver: '#A8A8A8',
+                            cream: '#F5F1E8'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0A0A0A;
+            color: #F5F1E8;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #0A0A0A;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease-out, visibility 1s;
+        }
+
+        .loader-text {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            letter-spacing: 1em;
+            color: #C9A962;
+            opacity: 0;
+            animation: fadeInOut 2s ease-in-out forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            50% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        .loader-line {
+            width: 1px;
+            height: 0;
+            background: linear-gradient(to bottom, transparent, #C9A962, transparent);
+            animation: lineGrow 1.5s ease-out forwards 0.5s;
+        }
+
+        @keyframes lineGrow {
+            to { height: 100px; }
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #C9A962;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.2s, background 0.2s;
+            mix-blend-mode: difference;
+        }
+
+        .cursor.hovered {
+            transform: scale(2);
+            background: rgba(201, 169, 98, 0.1);
+        }
+
+        /* Grain Texture */
+        .grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Scroll Progress */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #C9A962, #E5D4A1);
+            z-index: 10001;
+            width: 0%;
+        }
+
+        /* Logo Animation */
+        .logo-symbol {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 2s ease forwards;
+        }
+
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Text Reveal */
+        .reveal-text {
+            overflow: hidden;
+        }
+        
+        .reveal-text span {
+            display: block;
+            transform: translateY(100%);
+        }
+
+        /* Gold Gradient Text */
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #C9A962 0%, #E5D4A1 50%, #8B7355 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Card Hover Effects */
+        .car-card {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .car-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .car-card img {
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s;
+            filter: grayscale(20%) contrast(1.1);
+        }
+
+        .car-card:hover img {
+            transform: scale(1.05);
+            filter: grayscale(0%) contrast(1.2);
+        }
+
+        /* Magnetic Button */
+        .magnetic-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .magnetic-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: #C9A962;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .magnetic-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .magnetic-btn span {
+            position: relative;
+            z-index: 1;
+            transition: color 0.4s;
+        }
+
+        .magnetic-btn:hover span {
+            color: #0A0A0A;
+        }
+
+        /* Navigation */
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #C9A962;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Parallax Container */
+        .parallax-wrap {
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Spec Counter Animation */
+        .spec-value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Horizontal Scroll Section */
+        .horizontal-scroll {
+            display: flex;
+            width: fit-content;
+        }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A0A0A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #C9A962;
+        }
+
+        /* Ambient Light */
+        .ambient-light {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(201, 169, 98, 0.15) 0%, transparent 70%);
+            filter: blur(80px);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-aether-gold selection:text-aether-black">
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-text">AETHER</div>
+        <div class="loader-line"></div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor hidden md:block"></div>
+
+    <!-- Grain Overlay -->
+    <div class="grain"></div>
+
+    <!-- Scroll Progress -->
+    <div class="scroll-progress"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-50 px-8 py-6 flex justify-between items-center mix-blend-difference">
+        <a href="#hero" class="flex items-center gap-3 group cursor-pointer">
+            <svg class="w-10 h-10" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" stroke="#C9A962" stroke-width="1" class="logo-symbol"/>
+                <path d="M50 20 L50 80 M20 50 Q50 20 80 50" stroke="#C9A962" stroke-width="1.5" stroke-linecap="round" class="logo-symbol" style="animation-delay: 0.5s"/>
+                <circle cx="50" cy="50" r="4" fill="#C9A962" class="logo-symbol" style="animation-delay: 1s"/>
+            </svg>
+            <span class="font-serif text-xl tracking-[0.3em] text-aether-cream font-light group-hover:text-aether-gold transition-colors">AETHER</span>
+        </a>
+
+        <div class="hidden md:flex gap-12 font-sans text-xs tracking-[0.2em] uppercase text-aether-cream/80">
+            <a href="#collection" class="nav-link hover:text-aether-gold transition-colors">Collection</a>
+            <a href="#atelier" class="nav-link hover:text-aether-gold transition-colors">Atelier</a>
+            <a href="#bespoke" class="nav-link hover:text-aether-gold transition-colors">Bespoke</a>
+            <a href="#concierge" class="nav-link hover:text-aether-gold transition-colors">Concierge</a>
+        </div>
+
+        <button class="magnetic-btn px-8 py-3 border border-aether-gold/50 text-aether-gold text-xs tracking-[0.2em] uppercase font-sans cursor-pointer">
+            <span>Enquire</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Hero Section -->
+        <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden">
+            <!-- Ambient Light -->
+            <div class="ambient-light top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+            
+            <!-- Background Image with Parallax -->
+            <div class="absolute inset-0 z-0">
+                <div class="parallax-wrap w-full h-full">
+                    <img src="https://images.unsplash.com/photo-1503376763036-066120622c74?q=80&w=2000&auto=format&fit=crop" 
+                         alt="Luxury Car" 
+                         class="w-full h-full object-cover scale-110 opacity-60"
+                         id="hero-bg">
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-b from-aether-black via-transparent to-aether-black"></div>
+            </div>
+
+            <!-- Hero Content -->
+            <div class="relative z-10 text-center px-6 max-w-6xl mx-auto">
+                <p class="font-sans text-aether-gold text-xs tracking-[0.5em] uppercase mb-8 reveal-text">
+                    <span>Est. MMXXIV</span>
+                </p>
+                
+                <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl text-aether-cream mb-6 leading-none">
+                    <div class="reveal-text"><span>AETHER</span></div>
+                </h1>
+                
+                <p class="font-sans text-lg md:text-xl text-aether-silver/80 max-w-2xl mx-auto mb-12 font-light tracking-wide reveal-text">
+                    <span>Where celestial engineering meets terrestrial luxury. We curate the world's most extraordinary vehicles for those who demand the exceptional.</span>
+                </p>
+
+                <div class="flex flex-col md:flex-row gap-6 justify-center items-center reveal-text">
+                    <a href="#collection" class="magnetic-btn px-12 py-4 bg-aether-gold text-aether-black font-sans text-xs tracking-[0.3em] uppercase font-semibold cursor-pointer">
+                        <span>Explore Collection</span>
+                    </a>
+                    <a href="#atelier" class="text-aether-cream font-sans text-xs tracking-[0.2em] uppercase flex items-center gap-3 group cursor-pointer">
+                        <span>Discover Atelier</span>
+                        <svg class="w-4 h-4 transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-50">
+                <span class="font-sans text-[10px] tracking-[0.3em] uppercase text-aether-silver">Scroll</span>
+                <div class="w-px h-16 bg-gradient-to-b from-aether-gold to-transparent"></div>
+            </div>
+        </section>
+
+        <!-- Philosophy Strip -->
+        <section class="py-24 border-y border-white/5 bg-aether-charcoal/30">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                    <div class="space-y-4">
+                        <span class="font-serif text-4xl text-aether-gold">01</span>
+                        <h3 class="font-serif text-xl tracking-widest text-aether-cream uppercase">Curated</h3>
+                        <p class="font-sans text-sm text-aether-silver/60 font-light leading-relaxed">Each vehicle selected from the pinnacle of global automotive craftsmanship.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <span class="font-serif text-4xl text-aether-gold">02</span>
+                        <h3 class="font-serif text-xl tracking-widest text-aether-cream uppercase">Bespoke</h3>
+                        <p class="font-sans text-sm text-aether-silver/60 font-light leading-relaxed">Tailored specifications and personalization for the discerning collector.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <span class="font-serif text-4xl text-aether-gold">03</span>
+                        <h3 class="font-serif text-xl tracking-widest text-aether-cream uppercase">Concierge</h3>
+                        <p class="font-sans text-sm text-aether-silver/60 font-light leading-relaxed">White-glove service from acquisition to lifetime ownership support.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Collection -->
+        <section id="collection" class="py-32 relative">
+            <div class="container mx-auto px-6">
+                
+                <!-- Section Header -->
+                <div class="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
+                    <div>
+                        <span class="font-sans text-aether-gold text-xs tracking-[0.3em] uppercase block mb-4">The Collection</span>
+                        <h2 class="font-serif text-4xl md:text-6xl text-aether-cream leading-tight">
+                            Masterpieces of<br>
+                            <span class="text-gold-gradient">Velocity</span>
+                        </h2>
+                    </div>
+                    <p class="font-sans text-aether-silver/60 max-w-md text-sm leading-relaxed font-light">
+                        Our current selection represents the apex of automotive engineering—from hybrid hypercars to coach-built grand tourers.
+                    </p>
+                </div>
+
+                <!-- Car Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <!-- Car 1: Hypercar -->
+                    <div class="car-card group relative bg-aether-charcoal/20 border border-white/5 overflow-hidden cursor-pointer">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?q=80&w=1200&auto=format&fit=crop" 
+                                 alt="Aether Hyperion" 
+                                 class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-aether-black via-transparent to-transparent opacity-80"></div>
+                            
+                            <!-- Overlay Info -->
+                            <div class="absolute bottom-0 left-0 right-0 p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <span class="font-sans text-aether-gold text-xs tracking-[0.2em] uppercase block mb-2">Hypercar</span>
+                                        <h3 class="font-serif text-3xl text-aether-cream mb-2">HYPERION</h3>
+                                        <p class="font-sans text-xs text-aether-silver/60 tracking-wider">V12 HYBRID • 1,200 HP</p>
+                                    </div>
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                        <span class="font-serif text-2xl text-aether-gold">$2.4M</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Car 2: GT -->
+                    <div class="car-card group relative bg-aether-charcoal/20 border border-white/5 overflow-hidden cursor-pointer mt-0 lg:mt-24">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=1200&auto=format&fit=crop" 
+                                 alt="Aether Grand Tourer" 
+                                 class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-aether-black via-transparent to-transparent opacity-80"></div>
+                            
+                            <div class="absolute bottom-0 left-0 right-0 p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <span class="font-sans text-aether-gold text-xs tracking-[0.2em] uppercase block mb-2">Grand Tourer</span>
+                                        <h3 class="font-serif text-3xl text-aether-cream mb-2">CELESTIAL GT</h3>
+                                        <p class="font-sans text-xs text-aether-silver/60 tracking-wider">V8 TWIN-TURBO • 800 HP</p>
+                                    </div>
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                        <span class="font-serif text-2xl text-aether-gold">$890K</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Car 3: EV -->
+                    <div class="car-card group relative bg-aether-charcoal/20 border border-white/5 overflow-hidden cursor-pointer">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=1200&auto=format&fit=crop" 
+                                 alt="Aether Electric" 
+                                 class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-aether-black via-transparent to-transparent opacity-80"></div>
+                            
+                            <div class="absolute bottom-0 left-0 right-0 p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <span class="font-sans text-aether-gold text-xs tracking-[0.2em] uppercase block mb-2">Electric</span>
+                                        <h3 class="font-serif text-3xl text-aether-cream mb-2">AURORA E</h3>
+                                        <p class="font-sans text-xs text-aether-silver/60 tracking-wider">DUAL MOTOR • 1,100 HP</p>
+                                    </div>
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                        <span class="font-serif text-2xl text-aether-gold">$1.8M</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Car 4: Classic -->
+                    <div class="car-card group relative bg-aether-charcoal/20 border border-white/5 overflow-hidden cursor-pointer mt-0 lg:mt-24">
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1566008885218-90abf9200ddb?q=80&w=1200&auto=format&fit=crop" 
+                                 alt="Aether Heritage" 
+                                 class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-aether-black via-transparent to-transparent opacity-80"></div>
+                            
+                            <div class="absolute bottom-0 left-0 right-0 p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <span class="font-sans text-aether-gold text-xs tracking-[0.2em] uppercase block mb-2">Heritage</span>
+                                        <h3 class="font-serif text-3xl text-aether-cream mb-2">LEGENDE</h3>
+                                        <p class="font-sans text-xs text-aether-silver/60 tracking-wider">RESTORED CLASSIC • 1967</p>
+                                    </div>
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                        <span class="font-serif text-2xl text-aether-gold">$4.2M</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-40 text-center">
+                    <button class="magnetic-btn px-12 py-4 border border-aether-gold/30 text-aether-gold font-sans text-xs tracking-[0.3em] uppercase cursor-pointer hover:border-aether-gold transition-colors">
+                        <span>View All Models</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Atelier Section -->
+        <section id="atelier" class="py-32 bg-aether-charcoal/20 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-aether-gold/5 to-transparent"></div>
+            
+            <div class="container mx-auto px-6 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    
+                    <div class="space-y-8">
+                        <span class="font-sans text-aether-gold text-xs tracking-[0.3em] uppercase">The Atelier</span>
+                        <h2 class="font-serif text-4xl md:text-5xl text-aether-cream leading-tight">
+                            Crafted for the<br>
+                            <span class="italic text-aether-silver">Exceptional</span>
+                        </h2>
+                        <p class="font-sans text-aether-silver/70 leading-relaxed font-light">
+                            Our atelier represents the pinnacle of automotive personalization. From rare material selection to bespoke color matching, we transform exceptional vehicles into singular masterpieces that reflect their owner's unique vision.
+                        </p>
+                        
+                        <div class="grid grid-cols-2 gap-8 pt-8 border-t border-white/10">
+                            <div>
+                                <span class="font-serif text-3xl text-aether-gold block mb-2">48</span>
+                                <span class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider">Weeks Average</span>
+                            </div>
+                            <div>
+                                <span class="font-serif text-3xl text-aether-gold block mb-2">∞</span>
+                                <span class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider">Possibilities</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div class="aspect-[3/4] overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1000&auto=format&fit=crop" 
+                                 alt="Atelier Craftsmanship" 
+                                 class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-700">
+                        </div>
+                        <div class="absolute -bottom-6 -left-6 w-48 h-48 border border-aether-gold/30"></div>
+                        <div class="absolute -top-6 -right-6 w-48 h-48 bg-aether-gold/10"></div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Bespoke Configurator Teaser -->
+        <section id="bespoke" class="py-32 relative">
+            <div class="container mx-auto px-6">
+                <div class="bg-aether-charcoal/30 border border-white/5 p-12 md:p-24 text-center relative overflow-hidden group">
+                    
+                    <!-- Animated Background -->
+                    <div class="absolute inset-0 opacity-20">
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                    </div>
+
+                    <div class="relative z-10 max-w-3xl mx-auto space-y-8">
+                        <span class="font-sans text-aether-gold text-xs tracking-[0.3em] uppercase">Bespoke Configuration</span>
+                        <h2 class="font-serif text-4xl md:text-6xl text-aether-cream">Create Your Legacy</h2>
+                        <p class="font-sans text-aether-silver/60 font-light">
+                            Begin your journey with our configuration specialists. Every stitch, every finish, every detail tailored to your exact specifications.
+                        </p>
+                        
+                        <div class="pt-8">
+                            <button class="magnetic-btn px-16 py-5 bg-aether-gold text-aether-black font-sans text-xs tracking-[0.3em] uppercase font-semibold cursor-pointer">
+                                <span>Begin Configuration</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Decorative Elements -->
+                    <div class="absolute top-0 left-0 w-32 h-32 border-l border-t border-aether-gold/20"></div>
+                    <div class="absolute bottom-0 right-0 w-32 h-32 border-r border-b border-aether-gold/20"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Concierge / Contact -->
+        <section id="concierge" class="py-32 bg-aether-black border-t border-white/5">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    
+                    <div class="space-y-8">
+                        <span class="font-sans text-aether-gold text-xs tracking-[0.3em] uppercase">Private Concierge</span>
+                        <h2 class="font-serif text-4xl md:text-5xl text-aether-cream">
+                            Let's Begin Your<br>Journey
+                        </h2>
+                        
+                        <div class="space-y-6 pt-8">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full border border-aether-gold/30 flex items-center justify-center text-aether-gold">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider block">Telephone</span>
+                                    <span class="font-serif text-aether-cream text-lg">+1 (888) AETHER-1</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full border border-aether-gold/30 flex items-center justify-center text-aether-gold">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider block">Email</span>
+                                    <span class="font-serif text-aether-cream text-lg">concierge@aether.auto</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form class="space-y-6">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider">First Name</label>
+                                <input type="text" class="w-full bg-transparent border-b border-white/20 py-3 text-aether-cream focus:border-aether-gold focus:outline-none transition-colors font-light">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider">Last Name</label>
+                                <input type="text" class="w-full bg-transparent border-b border-white/20 py-3 text-aether-cream focus:border-aether-gold focus:outline-none transition-colors font-light">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider">Email Address</label>
+                            <input type="email" class="w-full bg-transparent border-b border-white/20 py-3 text-aether-cream focus:border-aether-gold focus:outline-none transition-colors font-light">
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider">Interest</label>
+                            <select class="w-full bg-transparent border-b border-white/20 py-3 text-aether-cream focus:border-aether-gold focus:outline-none transition-colors font-light">
+                                <option value="" class="bg-aether-black">Select Model</option>
+                                <option value="hyperion" class="bg-aether-black">Hyperion</option>
+                                <option value="celestial" class="bg-aether-black">Celestial GT</option>
+                                <option value="aurora" class="bg-aether-black">Aurora E</option>
+                                <option value="bespoke" class="bg-aether-black">Bespoke Commission</option>
+                            </select>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="font-sans text-xs text-aether-silver/50 uppercase tracking-wider">Message</label>
+                            <textarea rows="4" class="w-full bg-transparent border-b border-white/20 py-3 text-aether-cream focus:border-aether-gold focus:outline-none transition-colors font-light resize-none"></textarea>
+                        </div>
+
+                        <button type="submit" class="magnetic-btn w-full py-4 bg-aether-gold text-aether-black font-sans text-xs tracking-[0.3em] uppercase font-semibold mt-8 cursor-pointer">
+                            <span>Submit Request</span>
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-12 border-t border-white/5 bg-aether-black">
+            <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="48" stroke="#C9A962" stroke-width="0.5"/>
+                        <path d="M50 25 L50 75 M25 50 Q50 25 75 50" stroke="#C9A962" stroke-width="1" stroke-linecap="round"/>
+                    </svg>
+                    <span class="font-serif text-lg tracking-[0.2em] text-aether-cream">AETHER</span>
+                </div>
+                
+                <div class="flex gap-8 font-sans text-xs text-aether-silver/40 uppercase tracking-wider">
+                    <a href="#" class="hover:text-aether-gold transition-colors">Privacy</a>
+                    <a href="#" class="hover:text-aether-gold transition-colors">Terms</a>
+                    <a href="#" class="hover:text-aether-gold transition-colors">Sustainability</a>
+                </div>
+
+                <p class="font-sans text-xs text-aether-silver/30 uppercase tracking-wider">
+                    &copy; MMXXIV Aether Automotive Atelier
+                </p>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- Loader Animation ---
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                initAnimations();
+            }, 2500);
+        });
+
+        // --- Custom Cursor ---
+        const cursor = document.querySelector('.cursor');
+        const hoverElements = document.querySelectorAll('a, button, .car-card');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        });
+
+        // --- Scroll Progress ---
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY;
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrolled / maxScroll) * 100;
+            document.querySelector('.scroll-progress').style.width = progress + '%';
+        });
+
+        // --- GSAP Animations ---
+        function initAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Text Reveals
+            gsap.to('.reveal-text span', {
+                y: 0,
+                duration: 1.2,
+                stagger: 0.1,
+                ease: "power4.out",
+                delay: 0.2
+            });
+
+            // Hero Parallax
+            gsap.to('#hero-bg', {
+                yPercent: 30,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: "#hero",
+                    start: "top top",
+                    end: "bottom top",
+                    scrub: true
+                }
+            });
+
+            // Car Cards Stagger
+            gsap.from('.car-card', {
+                y: 100,
+                opacity: 0,
+                duration: 1,
+                stagger: 0.2,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: "#collection",
+                    start: "top 70%"
+                }
+            });
+
+            // Section Headers
+            gsap.utils.toArray('section h2').forEach(header => {
+                gsap.from(header, {
+                    y: 50,
+                    opacity: 0,
+                    duration: 1,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: header,
+                        start: "top 80%"
+                    }
+                });
+            });
+
+            // Ambient Light Movement
+            document.addEventListener('mousemove', (e) => {
+                const light = document.querySelector('.ambient-light');
+                const x = (e.clientX / window.innerWidth - 0.5) * 100;
+                const y = (e.clientY / window.innerHeight - 0.5) * 100;
+                
+                gsap.to(light, {
+                    x: x,
+                    y: y,
+                    duration: 2,
+                    ease: "power2.out"
+                });
+            });
+        }
+
+        // --- Magnetic Button Effect ---
+        const magneticBtns = document.querySelectorAll('.magnetic-btn');
+        
+        magneticBtns.forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                gsap.to(btn, {
+                    x: x * 0.3,
+                    y: y * 0.3,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            });
+            
+            btn.addEventListener('mouseleave', () => {
+                gsap.to(btn, {
+                    x: 0,
+                    y: 0,
+                    duration: 0.5,
+                    ease: "elastic.out(1, 0.3)"
+                });
+            });
+        });
+
+        // --- Smooth Scroll for Anchor Links ---
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    gsap.to(window, {
+                        duration: 1.5,
+                        scrollTo: { y: target, offsetY: 80 },
+                        ease: "power3.inOut"
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
