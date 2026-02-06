@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miko's Portfolio - Interactive Solar System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a1a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            cursor: crosshair;
+        }
+
+        /* Game Container */
+        .game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        #space-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Solar System Container */
+        #solar-system {
+            position: absolute;
+            width: 3000px;
+            height: 3000px;
+            z-index: 2;
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        /* Header */
+        .game-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(to bottom, rgba(10, 10, 30, 0.95), transparent);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #00ffaa, #00cc88, #00aa66);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 170, 0.5);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            background: rgba(20, 20, 40, 0.8);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid #00ffaa;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #00ffaa;
+            margin-bottom: 3px;
+        }
+
+        .stat-value {
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Sun - FIXED POSITION in universe */
+        .sun {
+            position: absolute;
+            top: 1500px;
+            left: 1500px;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(
+                circle at 30% 30%,
+                #ffff00 0%,
+                #ffaa00 25%,
+                #ff5500 50%,
+                #ff2200 75%
+            );
+            border-radius: 50%;
+            box-shadow: 
+                0 0 100px #ffff00,
+                0 0 200px #ffaa00,
+                0 0 400px #ff5500;
+            animation: sunPulse 6s infinite alternate;
+            z-index: 3;
+        }
+
+        @keyframes sunPulse {
+            0% { 
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 
+                    0 0 100px #ffff00,
+                    0 0 200px #ffaa00,
+                    0 0 400px #ff5500;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1.1);
+                box-shadow: 
+                    0 0 150px #ffff00,
+                    0 0 300px #ffaa00,
+                    0 0 600px #ff5500;
+            }
+        }
+
+        /* Planets */
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 4;
+            transform-origin: center;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+            background-size: cover;
+            background-position: center;
+            overflow: visible;
+        }
+
+        .planet::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            filter: brightness(1.2) contrast(1.1);
+        }
+
+        .planet:hover {
+            transform: scale(1.2);
+            z-index: 100;
+            filter: drop-shadow(0 0 30px currentColor);
+        }
+
+        /* Planet Text Header */
+        .planet-header {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(30, 30, 60, 0.95), rgba(20, 20, 40, 0.95));
+            padding: 8px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 170, 0.5);
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .planet-header.show {
+            opacity: 0.9;
+            top: -65px;
+            background: linear-gradient(135deg, rgba(40, 40, 80, 0.95), rgba(30, 30, 60, 0.95));
+            border-color: rgba(0, 255, 170, 0.7);
+        }
+
+        .planet-name {
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+            font-family: 'Arial', sans-serif;
+        }
+
+        .planet-subtitle {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: normal;
+            color: #00ffaa;
+            margin-top: 3px;
+        }
+
+        .planet:hover .planet-header {
+            opacity: 1;
+            top: -65px;
+            background: linear-gradient(135deg, rgba(40, 40, 80, 0.95), rgba(30, 30, 60, 0.95));
+            border-color: rgba(0, 255, 170, 0.7);
+        }
+
+        .planet-atmosphere {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: atmospherePulse 6s infinite alternate;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes atmospherePulse {
+            0% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        /* Enter Prompt */
+        .enter-prompt {
+            position: absolute;
+            top: -95px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #00ffaa, #00cc88);
+            color: #001a14;
+            padding: 8px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 11;
+            white-space: nowrap;
+            border: 2px solid #00ffaa;
+            box-shadow: 0 0 25px #00ffaa;
+            text-align: center;
+        }
+
+        .enter-prompt.show {
+            opacity: 1;
+        }
+
+        /* SPACESHIP - Using PNG */
+        .spaceship {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px; /* Increased size for better visibility */
+            height: 60px; /* Increased size for better visibility */
+            pointer-events: none;
+            z-index: 2000;
+            transform-origin: center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .spaceship-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: spaceshipFloat 4s infinite ease-in-out;
+            filter: drop-shadow(0 0 15px rgba(0, 255, 170, 0.5));
+        }
+
+        @keyframes spaceshipFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* Portal Overlay */
+        .portal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(10, 10, 30, 0.95), rgba(5, 5, 20, 0.98));
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .portal-content {
+            background: linear-gradient(135deg, rgba(30, 30, 60, 0.95), rgba(40, 40, 80, 0.95));
+            padding: 40px;
+            border-radius: 25px;
+            border: 3px solid;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: portalGlow 3s infinite alternate;
+            box-shadow: 0 0 80px rgba(0, 255, 170, 0.6);
+        }
+
+        @keyframes portalGlow {
+            0% { box-shadow: 0 0 40px rgba(0, 255, 170, 0.4); }
+            100% { box-shadow: 0 0 80px rgba(0, 255, 170, 0.8); }
+        }
+
+        .portal-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00ffaa, #00cc88, #009966);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .portal-desc {
+            color: #ccccff;
+            font-size: 1rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .portal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .portal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 180px;
+        }
+
+        .portal-btn.explore {
+            background: linear-gradient(45deg, #00ffaa, #00cc88);
+            color: #001a14;
+        }
+
+        .portal-btn.return {
+            background: linear-gradient(45deg, #888888, #aaaaaa);
+            color: black;
+        }
+
+        .portal-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5);
+        }
+
+        /* Controls Guide */
+        .controls-guide {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(30, 30, 50, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #00ffaa;
+            backdrop-filter: blur(10px);
+            font-size: 0.8rem;
+        }
+
+        .controls-guide h3 {
+            margin-bottom: 12px;
+            color: #00ffaa;
+            font-size: 1rem;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .key {
+            background: rgba(0, 255, 170, 0.2);
+            border: 1px solid #00ffaa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            min-width: 25px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #00ffaa;
+        }
+
+        /* Asteroids */
+        .asteroid {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, #5a4a42, #3a2a22);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            animation: asteroidFloat linear infinite;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes asteroidFloat {
+            0% { transform: translateY(-100px) translateX(0) rotate(0deg); }
+            100% { transform: translateY(calc(100vh + 100px)) translateX(100px) rotate(360deg); }
+        }
+
+        /* Trail Effect */
+        .ship-trail {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(0, 170, 255, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1999;
+            animation: fadeTrail 2s forwards;
+        }
+
+        @keyframes fadeTrail {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        /* Moving Stars */
+        .moving-star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: starMove linear infinite;
+        }
+
+        @keyframes starMove {
+            0% { transform: translateY(-100px) translateX(0); }
+            100% { transform: translateY(calc(100vh + 100px)) translateX(100px); }
+        }
+
+        /* Minimap */
+        .minimap {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            width: 200px;
+            height: 200px;
+            background: rgba(10, 10, 26, 0.8);
+            border-radius: 10px;
+            border: 1px solid #00ffaa;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            border: 2px solid #00ffaa;
+            background: rgba(0, 255, 170, 0.1);
+            pointer-events: none;
+            z-index: 1002;
+        }
+
+        .minimap-sun {
+            position: absolute;
+            background: #ffaa00;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .minimap-planet {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .minimap-ship {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #00ffaa;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1003;
+        }
+    </style>
+</head>
+<body>
+    <!-- Game Container -->
+    <div class="game-container">
+        <!-- Animated Background -->
+        <canvas id="space-bg"></canvas>
+        
+        <!-- Solar System -->
+        <div id="solar-system">
+            <!-- Asteroids will be generated here -->
+            <!-- Sun - FIXED in universe -->
+            <div class="sun" title="Central Star"></div>
+        </div>
+        
+        <!-- Spaceship - Using PNG -->
+        <div class="spaceship" id="spaceship">
+            <img src="ufo-clipart-png-ufo-11563529370go5qqg6c4g.png" alt="Spaceship" class="spaceship-img">
+        </div>
+    </div>
+
+    <!-- Game Header -->
+    <div class="game-header">
+        <div class="logo">🚀 MIKO'S PORTFOLIO</div>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">COORDINATES</div>
+                <div class="stat-value" id="coordinates">X: 1500, Y: 1500</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">SPEED</div>
+                <div class="stat-value" id="speed">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">ENERGY</div>
+                <div class="stat-value" id="energy">100%</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">PLANETS</div>
+                <div class="stat-value" id="visited">0/8</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portal Overlay -->
+    <div class="portal-overlay" id="portal-overlay">
+        <div class="portal-content">
+            <h2 class="portal-title" id="portal-title">PLANET DISCOVERED</h2>
+            <div class="portal-desc" id="portal-desc">You have discovered a new planet!</div>
+            <div class="portal-buttons">
+                <button class="portal-btn explore" onclick="enterPlanet()">
+                    👽 VISIT PLANET
+                </button>
+                <button class="portal-btn return" onclick="closePortal()">
+                    🚀 CONTINUE EXPLORING
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Guide -->
+    <div class="controls-guide">
+        <h3>🚀 SPACESHIP CONTROLS</h3>
+        <div class="control-item">
+            <span class="key">W</span>
+            <span>Move Up</span>
+        </div>
+        <div class="control-item">
+            <span class="key">S</span>
+            <span>Move Down</span>
+        </div>
+        <div class="control-item">
+            <span class="key">A</span>
+            <span>Move Left</span>
+        </div>
+        <div class="control-item">
+            <span class="key">D</span>
+            <span>Move Right</span>
+        </div>
+        <div class="control-item">
+            <span class="key">SPACE</span>
+            <span>Boost Speed</span>
+        </div>
+        <div class="control-item">
+            <span class="key">ENTER</span>
+            <span>Enter Nearby Planet</span>
+        </div>
+        <div class="control-item">
+            <span class="key">+</span>
+            <span>Zoom In</span>
+        </div>
+        <div class="control-item">
+            <span class="key">-</span>
+            <span>Zoom Out</span>
+        </div>
+    </div>
+
+    <!-- Minimap -->
+    <div class="minimap" id="minimap">
+        <div class="minimap-viewport" id="minimap-viewport"></div>
+        <!-- Elements will be added by JavaScript -->
+    </div>
+
+    <!-- Hidden External Links -->
+    <div style="display: none;">
+        <a id="planet-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+    </div>
+
+    <script>
+        // Game Configuration
+        const config = {
+            shipSpeed: 8,
+            boostSpeed: 16,
+            maxEnergy: 100,
+            energyConsumption: 0.08,
+            trailInterval: 40,
+            planetActivationDistance: 120,
+            asteroidCount: 30,
+            movingStarsCount: 150,
+            starCount: 2000,
+            solarSystemSize: 3000,
+            zoomLevel: 1.0,
+            minZoom: 0.5,
+            maxZoom: 2.0
+        };
+
+        // Solar System Planets with SLOWER ORBITS
+        const solarSystemPlanets = [
+            {
+                name: "Instagram",
+                subtitle: "Photos & Stories",
+                color: "#E4405F",
+                atmosphereColor: "#E4405F44",
+                orbitRadius: 250,
+                orbitSpeed: 0.002, // SLOWER: Reduced from 0.008
+                size: 22,
+                description: "My Instagram - daily photos, stories, and creative moments",
+                website: "https://www.instagram.com/miko.palacio/",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #833AB4 0%, #C13584 30%, #E1306C 60%, #FD1D1D 90%)`,
+                angle: 0
+            },
+            {
+                name: "Facebook",
+                subtitle: "Connect & Share",
+                color: "#1877F2",
+                atmosphereColor: "#1877F244",
+                orbitRadius: 350,
+                orbitSpeed: 0.0015, // SLOWER: Reduced from 0.006
+                size: 26,
+                description: "My Facebook - connect with friends and share updates",
+                website: "https://www.facebook.com/Miko.palacioFb/",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #1877F2 0%, #166FE5 30%, #1464D2 60%, #1259BF 90%)`,
+                angle: 60
+            },
+            {
+                name: "Resume",
+                subtitle: "Professional Experience",
+                color: "#00A86B",
+                atmosphereColor: "#00A86B44",
+                orbitRadius: 450,
+                orbitSpeed: 0.001, // SLOWER: Reduced from 0.004
+                size: 30,
+                description: "My Resume - professional experience, skills, and qualifications",
+                website: "https://drive.google.com/drive/u/1/folders/14WhC0gYhIHjxjxxuGsIoQB_IYePSgQ0J",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #00A86B 0%, #00995D 30%, #008A4F 60%, #007B42 90%)`,
+                angle: 120
+            },
+            {
+                name: "Portfolio",
+                subtitle: "Creative Projects",
+                color: "#FF7A5C",
+                atmosphereColor: "#FF7A5C44",
+                orbitRadius: 550,
+                orbitSpeed: 0.00075, // SLOWER: Reduced from 0.003
+                size: 28,
+                description: "My Portfolio - creative projects and design work",
+                website: "#",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #FF7A5C 0%, #E66E53 30%, #CC624A 60%, #B35641 90%)`,
+                angle: 180
+            },
+            {
+                name: "GitHub",
+                subtitle: "Code Repository",
+                color: "#4078c0",
+                atmosphereColor: "#4078c044",
+                orbitRadius: 700,
+                orbitSpeed: 0.0005, // SLOWER: Reduced from 0.002
+                size: 40,
+                description: "My GitHub - code repositories and programming projects",
+                website: "#",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #4078c0 0%, #3869b0 30%, #305a9f 60%, #284b8e 90%)`,
+                angle: 240
+            },
+            {
+                name: "LinkedIn",
+                subtitle: "Professional Network",
+                color: "#0A66C2",
+                atmosphereColor: "#0A66C244",
+                orbitRadius: 850,
+                orbitSpeed: 0.000375, // SLOWER: Reduced from 0.0015
+                size: 38,
+                description: "My LinkedIn - professional networking and career",
+                website: "#",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #0A66C2 0%, #095BAC 30%, #085096 60%, #074580 90%)`,
+                angle: 300
+            },
+            {
+                name: "YouTube",
+                subtitle: "Video Content",
+                color: "#FF0000",
+                atmosphereColor: "#FF000044",
+                orbitRadius: 1000,
+                orbitSpeed: 0.00025, // SLOWER: Reduced from 0.001
+                size: 32,
+                description: "My YouTube - video tutorials and content",
+                website: "#",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #FF0000 0%, #E60000 30%, #CC0000 60%, #B30000 90%)`,
+                angle: 0
+            },
+            {
+                name: "Contact",
+                subtitle: "Get In Touch",
+                color: "#6B5B95",
+                atmosphereColor: "#6B5B9544",
+                orbitRadius: 1150,
+                orbitSpeed: 0.0002, // SLOWER: Reduced from 0.0008
+                size: 34,
+                description: "Contact me - get in touch for collaborations and opportunities",
+                website: "mailto:example@example.com",
+                texture: `radial-gradient(circle at 30% 30%, 
+                    #6B5B95 0%, #615287 30%, #574979 60%, #4D406B 90%)`,
+                angle: 60
+            }
+        ];
+
+        // Game State
+        const gameState = {
+            ship: {
+                x: config.solarSystemSize / 2,
+                y: config.solarSystemSize / 2,
+                rotation: 0,
+                speed: 0,
+                velocity: { x: 0, y: 0 },
+                energy: config.maxEnergy,
+                isBoosting: false,
+                lastTrailTime: 0,
+                movementEnabled: true
+            },
+            keys: {},
+            currentPlanet: null,
+            nearestPlanet: null,
+            visitedPlanets: new Set(),
+            stars: [],
+            movingStars: [],
+            asteroids: [],
+            time: 0,
+            trailParticles: [],
+            isInitialized: false,
+            camera: {
+                x: 0,
+                y: 0,
+                width: window.innerWidth,
+                height: window.innerHeight
+            }
+        };
+
+        // Initialize Game
+        function initGame() {
+            if (gameState.isInitialized) return;
+            
+            createStarBackground();
+            createMovingStars();
+            createAsteroids();
+            createSolarSystem();
+            createMinimap();
+            setupEventListeners();
+            updateStats();
+            gameLoop();
+            
+            gameState.isInitialized = true;
+        }
+
+        // Create Star Background
+        function createStarBackground() {
+            const canvas = document.getElementById('space-bg');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            gameState.stars = [];
+            
+            for (let i = 0; i < config.starCount; i++) {
+                gameState.stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2.5 + 0.5,
+                    brightness: Math.random() * 0.7 + 0.2,
+                    twinkleSpeed: Math.random() * 0.02 + 0.01,
+                    phase: Math.random() * Math.PI * 2,
+                    distance: Math.random() * 3 + 1
+                });
+            }
+        }
+
+        // Create Moving Stars
+        function createMovingStars() {
+            const system = document.getElementById('solar-system');
+            
+            for (let i = 0; i < config.movingStarsCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'moving-star';
+                
+                const size = Math.random() * 1.5 + 1;
+                const speed = Math.random() * 80 + 40;
+                const delay = Math.random() * 30;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.opacity = Math.random() * 0.6 + 0.2;
+                star.style.animationDuration = `${speed}s`;
+                star.style.animationDelay = `${delay}s`;
+                star.style.animationName = 'starMove';
+                
+                system.appendChild(star);
+                gameState.movingStars.push(star);
+            }
+        }
+
+        // Create Asteroids
+        function createAsteroids() {
+            const system = document.getElementById('solar-system');
+            
+            for (let i = 0; i < config.asteroidCount; i++) {
+                const asteroid = document.createElement('div');
+                asteroid.className = 'asteroid';
+                
+                const size = Math.random() * 20 + 12;
+                const speed = Math.random() * 150 + 100;
+                const delay = Math.random() * 50;
+                const left = Math.random() * 100;
+                
+                asteroid.style.width = `${size}px`;
+                asteroid.style.height = `${size}px`;
+                asteroid.style.left = `${left}%`;
+                asteroid.style.animationDuration = `${speed}s`;
+                asteroid.style.animationDelay = `${delay}s`;
+                asteroid.style.opacity = Math.random() * 0.8 + 0.2;
+                
+                asteroid.style.animationName = 'asteroidFloat';
+                asteroid.style.borderRadius = `${Math.random() * 30 + 35}% ${Math.random() * 30 + 35}% ${Math.random() * 30 + 35}% ${Math.random() * 30 + 35}%`;
+                
+                system.appendChild(asteroid);
+                gameState.asteroids.push(asteroid);
+            }
+        }
+
+        // Create Solar System
+        function createSolarSystem() {
+            const system = document.getElementById('solar-system');
+            
+            solarSystemPlanets.forEach((planet, index) => {
+                const planetEl = document.createElement('div');
+                planetEl.className = 'planet';
+                planetEl.dataset.name = planet.name;
+                planetEl.dataset.index = index;
+                planetEl.style.width = `${planet.size}px`;
+                planetEl.style.height = `${planet.size}px`;
+                planetEl.style.background = planet.texture;
+                planetEl.style.boxShadow = `inset 0 0 15px rgba(0, 0, 0, 0.3)`;
+                
+                const atmosphere = document.createElement('div');
+                atmosphere.className = 'planet-atmosphere';
+                atmosphere.style.width = `${planet.size * 1.8}px`;
+                atmosphere.style.height = `${planet.size * 1.8}px`;
+                atmosphere.style.background = `radial-gradient(circle, ${planet.atmosphereColor}, transparent 70%)`;
+                planetEl.appendChild(atmosphere);
+                
+                const header = document.createElement('div');
+                header.className = 'planet-header';
+                header.id = `header-${index}`;
+                header.innerHTML = `<div class="planet-name">${planet.name}</div><span class="planet-subtitle">${planet.subtitle}</span>`;
+                planetEl.appendChild(header);
+                
+                const enterPrompt = document.createElement('div');
+                enterPrompt.className = 'enter-prompt';
+                enterPrompt.id = `enter-prompt-${index}`;
+                enterPrompt.textContent = 'PRESS ENTER TO VISIT';
+                planetEl.appendChild(enterPrompt);
+                
+                planet.element = planetEl;
+                planet.header = header;
+                planet.enterPrompt = enterPrompt;
+                planet.currentAngle = planet.angle * Math.PI / 180;
+                
+                planetEl.addEventListener('mouseenter', () => {
+                    header.classList.add('show');
+                });
+                
+                planetEl.addEventListener('mouseleave', () => {
+                    if (gameState.nearestPlanet !== planet) {
+                        header.classList.remove('show');
+                    }
+                });
+                
+                system.appendChild(planetEl);
+            });
+        }
+
+        // Create Minimap
+        function createMinimap() {
+            const minimap = document.getElementById('minimap');
+            
+            const sun = document.createElement('div');
+            sun.className = 'minimap-sun';
+            sun.style.width = '8px';
+            sun.style.height = '8px';
+            sun.style.left = '50%';
+            sun.style.top = '50%';
+            minimap.appendChild(sun);
+            
+            solarSystemPlanets.forEach((planet, index) => {
+                const minimapPlanet = document.createElement('div');
+                minimapPlanet.className = 'minimap-planet';
+                minimapPlanet.style.width = '4px';
+                minimapPlanet.style.height = '4px';
+                minimapPlanet.style.background = planet.color;
+                minimapPlanet.style.boxShadow = `0 0 4px ${planet.color}`;
+                planet.minimapElement = minimapPlanet;
+                minimap.appendChild(minimapPlanet);
+            });
+            
+            const minimapShip = document.createElement('div');
+            minimapShip.className = 'minimap-ship';
+            minimapShip.id = 'minimap-ship';
+            minimap.appendChild(minimapShip);
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                gameState.keys[key] = true;
+                
+                if (key === 'enter' && gameState.nearestPlanet) {
+                    e.preventDefault();
+                    explorePlanet(gameState.nearestPlanet);
+                    return;
+                }
+                
+                if (key === '+' || key === '=') {
+                    e.preventDefault();
+                    zoomIn();
+                }
+                
+                if (key === '-' || key === '_') {
+                    e.preventDefault();
+                    zoomOut();
+                }
+                
+                if(['w','a','s','d',' '].includes(key)) {
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                gameState.keys[key] = false;
+            });
+            
+            window.addEventListener('resize', () => {
+                createStarBackground();
+                updateCamera();
+            });
+        }
+
+        // Game Loop
+        function gameLoop() {
+            update();
+            render();
+            gameState.time += 0.016;
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Update Game State
+        function update() {
+            updateShipMovement();
+            updatePlanetOrbits();
+            updateTrailParticles();
+            checkPlanetProximity();
+            updateCamera();
+            updateMinimap();
+            updateStats();
+        }
+
+        // Update Ship Movement
+        function updateShipMovement() {
+            const ship = gameState.ship;
+            const keys = gameState.keys;
+            
+            if (!ship.movementEnabled) return;
+            
+            ship.velocity.x = 0;
+            ship.velocity.y = 0;
+            
+            const currentSpeed = keys[' '] ? config.boostSpeed : config.shipSpeed;
+            ship.isBoosting = keys[' '];
+            
+            if (keys['w']) ship.velocity.y = -currentSpeed;
+            if (keys['s']) ship.velocity.y = currentSpeed;
+            if (keys['a']) ship.velocity.x = -currentSpeed;
+            if (keys['d']) ship.velocity.x = currentSpeed;
+            
+            ship.x += ship.velocity.x;
+            ship.y += ship.velocity.y;
+            
+            const margin = 100;
+            ship.x = Math.max(margin, Math.min(config.solarSystemSize - margin, ship.x));
+            ship.y = Math.max(margin, Math.min(config.solarSystemSize - margin, ship.y));
+            
+            ship.speed = Math.sqrt(ship.velocity.x ** 2 + ship.velocity.y ** 2);
+            
+            if (ship.speed > 0) {
+                const energyCost = ship.isBoosting ? config.energyConsumption * 2 : config.energyConsumption;
+                ship.energy = Math.max(0, ship.energy - energyCost);
+                
+                if (Date.now() - ship.lastTrailTime > config.trailInterval) {
+                    createTrailParticle();
+                    ship.lastTrailTime = Date.now();
+                }
+            }
+            
+            if (ship.speed === 0 && ship.energy < config.maxEnergy) {
+                ship.energy = Math.min(config.maxEnergy, ship.energy + 0.1);
+            }
+        }
+
+        // Update Planet Orbits - SLOWER ORBITS
+        function updatePlanetOrbits() {
+            const time = gameState.time;
+            const centerX = 1500;
+            const centerY = 1500;
+            
+            solarSystemPlanets.forEach((planet) => {
+                if (!planet.element) return;
+                
+                planet.currentAngle += planet.orbitSpeed;
+                
+                if (planet.currentAngle > Math.PI * 2) {
+                    planet.currentAngle -= Math.PI * 2;
+                }
+                
+                const x = centerX + Math.cos(planet.currentAngle) * planet.orbitRadius;
+                const y = centerY + Math.sin(planet.currentAngle) * planet.orbitRadius;
+                
+                planet.element.style.left = `${x}px`;
+                planet.element.style.top = `${y}px`;
+                planet.element.style.transform = `translate(-50%, -50%)`;
+                
+                planet.currentX = x;
+                planet.currentY = y;
+            });
+        }
+
+        // Create trail particle
+        function createTrailParticle() {
+            const ship = gameState.ship;
+            const trail = {
+                x: ship.x,
+                y: ship.y,
+                size: 8,
+                opacity: 0.8,
+                color: gameState.ship.isBoosting ? '#00aaff' : '#0088cc'
+            };
+            
+            gameState.trailParticles.push(trail);
+            
+            if (gameState.trailParticles.length > 25) {
+                gameState.trailParticles.shift();
+            }
+        }
+
+        // Update trail particles
+        function updateTrailParticles() {
+            for (let i = gameState.trailParticles.length - 1; i >= 0; i--) {
+                const particle = gameState.trailParticles[i];
+                particle.opacity -= 0.03;
+                particle.size -= 0.12;
+                
+                if (particle.opacity <= 0 || particle.size <= 0) {
+                    gameState.trailParticles.splice(i, 1);
+                }
+            }
+        }
+
+        // Check Planet Proximity
+        function checkPlanetProximity() {
+            const ship = gameState.ship;
+            let nearestPlanet = null;
+            let nearestDistance = Infinity;
+            
+            solarSystemPlanets.forEach((planet) => {
+                if (!planet.element || !planet.currentX || !planet.currentY) return;
+                
+                const dx = ship.x - planet.currentX;
+                const dy = ship.y - planet.currentY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const activationRadius = planet.size + config.planetActivationDistance;
+                
+                if (planet.header) {
+                    if (distance < activationRadius) {
+                        planet.header.classList.add('show');
+                        planet.element.style.filter = `drop-shadow(0 0 30px ${planet.color})`;
+                    } else {
+                        if (!planet.element.matches(':hover')) {
+                            planet.header.classList.remove('show');
+                            planet.element.style.filter = `drop-shadow(0 0 12px rgba(255, 255, 255, 0.3))`;
+                        }
+                    }
+                }
+                
+                if (planet.enterPrompt) {
+                    if (distance < activationRadius) {
+                        planet.enterPrompt.classList.add('show');
+                    } else {
+                        planet.enterPrompt.classList.remove('show');
+                    }
+                }
+                
+                if (distance < activationRadius && distance < nearestDistance) {
+                    nearestPlanet = planet;
+                    nearestDistance = distance;
+                }
+            });
+            
+            gameState.nearestPlanet = nearestPlanet;
+        }
+
+        // Update Camera
+        function updateCamera() {
+            const ship = gameState.ship;
+            const solarSystem = document.getElementById('solar-system');
+            
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            const targetX = -ship.x + viewportWidth / 2;
+            const targetY = -ship.y + viewportHeight / 2;
+            
+            const scale = config.zoomLevel;
+            
+            solarSystem.style.transform = `translate(${targetX}px, ${targetY}px) scale(${scale})`;
+            
+            gameState.camera.x = -targetX;
+            gameState.camera.y = -targetY;
+            gameState.camera.width = viewportWidth;
+            gameState.camera.height = viewportHeight;
+        }
+
+        // Update Minimap
+        function updateMinimap() {
+            const ship = gameState.ship;
+            const viewport = document.getElementById('minimap-viewport');
+            const minimapShip = document.getElementById('minimap-ship');
+            
+            const scale = 200 / config.solarSystemSize;
+            minimapShip.style.left = `${ship.x * scale}px`;
+            minimapShip.style.top = `${ship.y * scale}px`;
+            
+            solarSystemPlanets.forEach((planet) => {
+                if (planet.minimapElement) {
+                    planet.minimapElement.style.left = `${planet.currentX * scale}px`;
+                    planet.minimapElement.style.top = `${planet.currentY * scale}px`;
+                }
+            });
+            
+            const viewportScale = scale / config.zoomLevel;
+            viewport.style.width = `${gameState.camera.width * viewportScale}px`;
+            viewport.style.height = `${gameState.camera.height * viewportScale}px`;
+            viewport.style.left = `${(ship.x - gameState.camera.width / 2) * scale}px`;
+            viewport.style.top = `${(ship.y - gameState.camera.height / 2) * scale}px`;
+        }
+
+        // Zoom functions
+        function zoomIn() {
+            config.zoomLevel = Math.min(config.maxZoom, config.zoomLevel + 0.1);
+            updateCamera();
+        }
+
+        function zoomOut() {
+            config.zoomLevel = Math.max(config.minZoom, config.zoomLevel - 0.1);
+            updateCamera();
+        }
+
+        // Render
+        function render() {
+            drawStars();
+            drawTrailParticles();
+        }
+
+        // Draw Stars
+        function drawStars() {
+            const canvas = document.getElementById('space-bg');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const time = gameState.time;
+            
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const parallaxX = gameState.ship.velocity.x * 0.05;
+            const parallaxY = gameState.ship.velocity.y * 0.05;
+            
+            gameState.stars.forEach(star => {
+                const brightness = star.brightness * (0.6 + 0.5 * Math.sin(time * star.twinkleSpeed + star.phase));
+                
+                let x = (star.x + time * star.distance * 0.1 + parallaxX * star.distance) % canvas.width;
+                let y = (star.y + time * star.distance * 0.05 + parallaxY * star.distance) % canvas.height;
+                
+                if (x < 0) x += canvas.width;
+                if (y < 0) y += canvas.height;
+                
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+                ctx.arc(x, y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                if (brightness > 0.5) {
+                    ctx.beginPath();
+                    const glowSize = star.size * 2;
+                    const gradient = ctx.createRadialGradient(
+                        x, y, star.size,
+                        x, y, glowSize
+                    );
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${brightness * 0.5})`);
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.arc(x, y, glowSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        // Draw Trail Particles
+        function drawTrailParticles() {
+            const canvas = document.getElementById('space-bg');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            
+            gameState.trailParticles.forEach(particle => {
+                const gradient = ctx.createRadialGradient(
+                    particle.x, particle.y, 0,
+                    particle.x, particle.y, particle.size * 2
+                );
+                gradient.addColorStop(0, `${particle.color}${Math.floor(particle.opacity * 255).toString(16).padStart(2, '0')}`);
+                gradient.addColorStop(1, `${particle.color}00`);
+                
+                ctx.beginPath();
+                ctx.fillStyle = gradient;
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // Explore Planet
+        function explorePlanet(planet) {
+            if (!planet) return;
+            
+            gameState.currentPlanet = planet;
+            
+            if (!gameState.visitedPlanets.has(planet.name)) {
+                gameState.visitedPlanets.add(planet.name);
+                showNotification(`🚀 First visit to ${planet.name}!`);
+            }
+            
+            document.getElementById('portal-title').textContent = planet.name;
+            document.getElementById('portal-desc').textContent = planet.description;
+            
+            document.querySelector('.portal-content').style.borderImage = 
+                `linear-gradient(45deg, ${planet.color}, ${planet.color}88) 1`;
+            
+            document.getElementById('planet-link').href = planet.website;
+            
+            document.getElementById('portal-overlay').style.display = 'flex';
+            gameState.ship.movementEnabled = false;
+        }
+
+        // Enter Planet
+        function enterPlanet() {
+            if (gameState.currentPlanet) {
+                const link = document.getElementById('planet-link');
+                
+                if (gameState.currentPlanet.website.startsWith('mailto:')) {
+                    window.location.href = link.href;
+                    showNotification(`📧 Opening email client...`);
+                } else if (gameState.currentPlanet.website !== '#') {
+                    window.open(link.href, '_blank', 'noopener,noreferrer');
+                    showNotification(`🚀 Visiting ${gameState.currentPlanet.name}...`);
+                } else {
+                    showNotification(`⚠️ ${gameState.currentPlanet.name} link coming soon!`);
+                }
+                
+                closePortal();
+            }
+        }
+
+        function closePortal() {
+            document.getElementById('portal-overlay').style.display = 'none';
+            gameState.ship.movementEnabled = true;
+        }
+
+        // Update Statistics Display
+        function updateStats() {
+            document.getElementById('coordinates').textContent = 
+                `X: ${Math.round(gameState.ship.x)}, Y: ${Math.round(gameState.ship.y)}`;
+            
+            document.getElementById('speed').textContent = 
+                `${Math.round(gameState.ship.speed * 10)}`;
+            
+            document.getElementById('energy').textContent = 
+                `${Math.round(gameState.ship.energy)}%`;
+            
+            document.getElementById('visited').textContent = 
+                `${gameState.visitedPlanets.size}/${solarSystemPlanets.length}`;
+        }
+
+        // Show Notification
+        function showNotification(message) {
+            console.log(message); // Optional: log to console
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initGame);
+
+        // Expose functions globally
+        window.enterPlanet = enterPlanet;
+        window.closePortal = closePortal;
+        window.zoomIn = zoomIn;
+        window.zoomOut = zoomOut;
+    </script>
+</body>
+</html>
