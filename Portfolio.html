@@ -128,14 +128,19 @@
             }
         }
 
-        /* Clean Portfolio Grid */
+        /* Clean Portfolio Grid - 3 columns for 5 items */
         .portfolio-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 40px 40px 100px;
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 40px;
+        }
+
+        /* Last item centered when odd number */
+        .project-card:last-child:nth-child(odd) {
+            grid-column: 2;
         }
 
         .project-card {
@@ -237,6 +242,16 @@
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .portfolio-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .project-card:last-child:nth-child(odd) {
+                grid-column: auto;
+            }
+        }
+
         @media (max-width: 768px) {
             .portfolio-container {
                 grid-template-columns: 1fr;
@@ -354,6 +369,24 @@
                 </div>
                 <h2 class="project-name">Thread</h2>
                 <p class="project-category">Fashion Platform</p>
+            </div>
+        </a>
+
+        <!-- Nexus - Gaming/Trending Games -->
+        <a href="nexus.html" class="project-card" data-cursor="hover">
+            <div class="image-container">
+                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&h=600&fit=crop" 
+                     alt="Nexus" 
+                     class="project-image">
+                <div class="distortion"></div>
+            </div>
+            <div class="project-info">
+                <div class="project-meta">
+                    <span class="project-number">05</span>
+                    <span class="project-year">2024</span>
+                </div>
+                <h2 class="project-name">Nexus</h2>
+                <p class="project-category">Trending Games</p>
             </div>
         </a>
     </div>
